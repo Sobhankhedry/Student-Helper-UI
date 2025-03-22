@@ -19,8 +19,10 @@ class WeeklySchedulePage extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Center(
+              Padding(
+                padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
                 child: Text(
                   'برنامه هفتگی',
                   style: TextStyle(
@@ -31,12 +33,10 @@ class WeeklySchedulePage extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(height: 20),
-              
-              Expanded(
-                child: _buildWeeklyScheduleTable(),
-              ),
-              
+              const SizedBox(height: 20,),
+
+              Expanded(child: _buildWeeklyScheduleTable()),
+
               const SizedBox(height: 40),
             ],
           ),
@@ -46,7 +46,6 @@ class WeeklySchedulePage extends StatelessWidget {
   }
 
   Widget _buildWeeklyScheduleTable() {
-
     final List<Map<String, String>> timeSlots = [
       {'start': '8:00', 'end': '10:00'},
       {'start': '10:00', 'end': '12:00'},
@@ -66,23 +65,18 @@ class WeeklySchedulePage extends StatelessWidget {
     ];
 
     return Table(
-      border: TableBorder.all(
-        color: Colors.black,
-        width: 4,
-      ),
+      border: TableBorder.all(color: Colors.black, width: 3),
       columnWidths: const {
         0: FixedColumnWidth(60),
-        1: FixedColumnWidth(50), 
-        2: FixedColumnWidth(50), 
-        3: FixedColumnWidth(50), 
-        4: FixedColumnWidth(50), 
-        5: FixedColumnWidth(50), 
+        1: FixedColumnWidth(60),
+        2: FixedColumnWidth(60),
+        3: FixedColumnWidth(60),
+        4: FixedColumnWidth(60),
+        5: FixedColumnWidth(60),
       },
       children: [
         TableRow(
-          decoration: const BoxDecoration(
-            color: Color(0xFF5BBCD6),
-          ),
+          decoration: const BoxDecoration(color: Color.fromARGB(255, 37, 175, 213)),
           children: [
             const TableCell(
               child: Padding(
@@ -92,7 +86,7 @@ class WeeklySchedulePage extends StatelessWidget {
                     'ساعت',
                     style: TextStyle(
                       fontFamily: 'Vazir',
-                      color: Colors.white,
+                      color: Colors.black,
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
                     ),
@@ -103,7 +97,7 @@ class WeeklySchedulePage extends StatelessWidget {
             ),
 
             ...List.generate(5, (index) {
-              final timeSlot = timeSlots[index]; 
+              final timeSlot = timeSlots[index];
               return TableCell(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 4.0),
@@ -114,7 +108,7 @@ class WeeklySchedulePage extends StatelessWidget {
                         timeSlot['start']!,
                         style: const TextStyle(
                           fontFamily: 'Vazir',
-                          color: Colors.white,
+                          color: Colors.black,
                           fontWeight: FontWeight.bold,
                           fontSize: 12,
                         ),
@@ -124,7 +118,7 @@ class WeeklySchedulePage extends StatelessWidget {
                         'تا',
                         style: TextStyle(
                           fontFamily: 'Vazir',
-                          color: Colors.white,
+                          color: Colors.black,
                           fontWeight: FontWeight.bold,
                           fontSize: 12,
                         ),
@@ -134,7 +128,7 @@ class WeeklySchedulePage extends StatelessWidget {
                         timeSlot['end']!,
                         style: const TextStyle(
                           fontFamily: 'Vazir',
-                          color: Colors.white,
+                          color: Colors.black,
                           fontWeight: FontWeight.bold,
                           fontSize: 12,
                         ),
@@ -147,38 +141,44 @@ class WeeklySchedulePage extends StatelessWidget {
             }),
           ],
         ),
-        
-        ...weekDays.map((day) => TableRow(
-          children: [
-            TableCell(
-              child: Container(
-                height: 50,
-                color: Colors.white,
-                child: Center(
-                  child: Text(
-                    day,
-                    style: const TextStyle(
-                      fontFamily: 'Vazir',
-                      color: Colors.black,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
+
+        ...weekDays
+            .map(
+              (day) => TableRow(
+                children: [
+                  TableCell(
+                    child: Container(
+                      height: 70,
+                      color: Colors.white,
+                      child: Center(
+                        child: Text(
+                          day,
+                          style: const TextStyle(
+                            fontFamily: 'Vazir',
+                            color: Colors.black,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
                     ),
-                    textAlign: TextAlign.center,
                   ),
-                ),
+                  ...List.generate(
+                    5,
+                    (index) => TableCell(
+                      child: Container(
+                        height: 70,
+                        color: Colors.white,
+                        child: const SizedBox(height: 32,),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ),
-            ...List.generate(5, (index) => TableCell(
-              child: Container(
-                height: 50,
-                color: Colors.white,
-                child: const SizedBox(),
-              ),
-            )),
-          ],
-        )).toList(),
+            )
+            .toList(),
       ],
     );
   }
 }
-
