@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_2/models/LoginRequest.dart';
+import 'package:flutter_application_2/services/api_services.dart';
 import 'register_page.dart';
-import 'dashboard_page.dart'; 
+import 'dashboard_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -63,7 +65,7 @@ class _LoginPageState extends State<LoginPage> {
                   ],
                 ),
                 const SizedBox(height: 24),
-                
+
                 // Username field
                 TextField(
                   controller: _usernameController,
@@ -76,7 +78,7 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Password field
                 TextField(
                   controller: _passwordController,
@@ -90,32 +92,54 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                
+
                 // Login button
                 ElevatedButton(
-                  onPressed: () {
-                    // تغییر به داشبورد ساده
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => SimpleDashboard(
-                          username: _usernameController.text.isEmpty 
-                              ? 'کاربر' 
-                              : _usernameController.text,
+                  onPressed: () async {
+                    final username = _usernameController.text.trim();
+                    final password = _passwordController.text;
+
+                    try {
+                      // Create login request model
+                      final loginRequest = LoginRequest(
+                        email: username,
+                        password: password,
+                      );
+
+                      // Send to API
+                      final responseMessage = await ApiService().login(
+                        loginRequest,
+                      );
+
+                      // Optionally: show success dialog/snack
+                      ScaffoldMessenger.of(
+                        context,
+                      ).showSnackBar(SnackBar(content: Text(responseMessage)));
+
+                      // Navigate to dashboard
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder:
+                              (context) => SimpleDashboard(
+                                username: username.isEmpty ? 'کاربر' : username,
+                              ),
                         ),
-                      ),
-                    );
+                      );
+                    } catch (e) {
+                      // Show error message
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('خطا در ورود: $e')),
+                      );
+                    }
                   },
                   child: const Text(
                     'ورود',
-                    style: TextStyle(
-                      fontFamily: 'Vazir',
-                      fontSize: 16,
-                    ),
+                    style: TextStyle(fontFamily: 'Vazir', fontSize: 16),
                   ),
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Register link
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -136,8 +160,7 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                         );
                       },
-                      child: 
-                      const Text(
+                      child: const Text(
                         'ثبت نام',
                         style: TextStyle(
                           fontFamily: 'Vazir',
