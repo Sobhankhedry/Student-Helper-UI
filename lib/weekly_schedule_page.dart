@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+// Define the primary theme color for the application
+const Color primaryColor = Color.fromARGB(255, 37, 37, 213);
 class WeeklySchedulePage extends StatelessWidget {
   const WeeklySchedulePage({super.key});
 
@@ -14,6 +16,16 @@ class WeeklySchedulePage extends StatelessWidget {
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
+        title: const Text(
+          'برنامه هفتگی',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            fontFamily: 'Vazir',
+          ),
+        ),
+        centerTitle: true,
       ),
       body: SafeArea(
         child: Padding(
@@ -21,20 +33,9 @@ class WeeklySchedulePage extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
-                child: Text(
-                  'برنامه هفتگی',
-                  style: TextStyle(
-                    fontFamily: 'Vazir',
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20,),
+              SizedBox(height: 16,),
 
+              // Weekly schedule table
               Expanded(child: _buildWeeklyScheduleTable()),
 
               const SizedBox(height: 40),
@@ -46,6 +47,7 @@ class WeeklySchedulePage extends StatelessWidget {
   }
 
   Widget _buildWeeklyScheduleTable() {
+    // Define time slots for the schedule
     final List<Map<String, String>> timeSlots = [
       {'start': '8:00', 'end': '10:00'},
       {'start': '10:00', 'end': '12:00'},
@@ -54,6 +56,7 @@ class WeeklySchedulePage extends StatelessWidget {
       {'start': '16:00', 'end': '18:00'},
     ];
 
+    // Define days of the week in Persian
     final List<String> weekDays = [
       'شنبه',
       'یکشنبه',
@@ -75,8 +78,9 @@ class WeeklySchedulePage extends StatelessWidget {
         5: FixedColumnWidth(60),
       },
       children: [
+        // Header row with time slots
         TableRow(
-          decoration: const BoxDecoration(color: Color.fromARGB(255, 37, 175, 213)),
+          decoration: BoxDecoration(color: primaryColor),
           children: [
             const TableCell(
               child: Padding(
@@ -86,7 +90,7 @@ class WeeklySchedulePage extends StatelessWidget {
                     'ساعت',
                     style: TextStyle(
                       fontFamily: 'Vazir',
-                      color: Colors.black,
+                      color: Colors.white,
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
                     ),
@@ -96,6 +100,7 @@ class WeeklySchedulePage extends StatelessWidget {
               ),
             ),
 
+            // Generate time slot headers
             ...List.generate(5, (index) {
               final timeSlot = timeSlots[index];
               return TableCell(
@@ -108,7 +113,7 @@ class WeeklySchedulePage extends StatelessWidget {
                         timeSlot['start']!,
                         style: const TextStyle(
                           fontFamily: 'Vazir',
-                          color: Colors.black,
+                          color: Colors.white,
                           fontWeight: FontWeight.bold,
                           fontSize: 12,
                         ),
@@ -118,7 +123,7 @@ class WeeklySchedulePage extends StatelessWidget {
                         'تا',
                         style: TextStyle(
                           fontFamily: 'Vazir',
-                          color: Colors.black,
+                          color: Colors.white,
                           fontWeight: FontWeight.bold,
                           fontSize: 12,
                         ),
@@ -128,7 +133,7 @@ class WeeklySchedulePage extends StatelessWidget {
                         timeSlot['end']!,
                         style: const TextStyle(
                           fontFamily: 'Vazir',
-                          color: Colors.black,
+                          color: Colors.white,
                           fontWeight: FontWeight.bold,
                           fontSize: 12,
                         ),
@@ -142,10 +147,12 @@ class WeeklySchedulePage extends StatelessWidget {
           ],
         ),
 
+        // Day rows with empty cells for schedule entries
         ...weekDays
             .map(
               (day) => TableRow(
                 children: [
+                  // Day name cell
                   TableCell(
                     child: Container(
                       height: 70,
@@ -164,6 +171,7 @@ class WeeklySchedulePage extends StatelessWidget {
                       ),
                     ),
                   ),
+                  // Empty cells for schedule entries
                   ...List.generate(
                     5,
                     (index) => TableCell(
