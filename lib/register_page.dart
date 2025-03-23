@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_2/login_page.dart';
 import 'package:flutter_application_2/models/User.dart';
 import 'package:flutter_application_2/services/api_services.dart';
 
@@ -262,10 +263,18 @@ class _RegisterPageState extends State<RegisterPage> {
                         fullName: name,
                       );
                       final responseMessage = await ApiService().signUp(user);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(responseMessage),
+                          backgroundColor: Colors.lightGreen,
+                        ),
+                      );
+                      await Future.delayed(const Duration(seconds: 1));
 
-                      ScaffoldMessenger.of(
+                      Navigator.pushReplacement(
                         context,
-                      ).showSnackBar(SnackBar(content: Text(responseMessage)));
+                        MaterialPageRoute(builder: (context) => LoginPage()),
+                      );
                     } on HttpException catch (e) {
                       if (e.statusCode == 400) {
                         ScaffoldMessenger.of(context).showSnackBar(

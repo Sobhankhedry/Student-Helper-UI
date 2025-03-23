@@ -33,7 +33,7 @@ class ApiService {
     if (response.statusCode == 200) {
       return response.body; // e.g., "welcome username"
     } else {
-      throw Exception('Failed to login: ${response.body}');
+      throw HttpException(response.statusCode, response.body);
     }
   }
 }

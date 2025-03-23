@@ -112,9 +112,12 @@ class _LoginPageState extends State<LoginPage> {
                       );
 
                       // Optionally: show success dialog/snack
-                      ScaffoldMessenger.of(
-                        context,
-                      ).showSnackBar(SnackBar(content: Text(responseMessage)));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(responseMessage),
+                          backgroundColor: Colors.lightGreen,
+                        ),
+                      );
 
                       // Navigate to dashboard
                       Navigator.pushReplacement(
@@ -126,11 +129,25 @@ class _LoginPageState extends State<LoginPage> {
                               ),
                         ),
                       );
-                    } catch (e) {
-                      // Show error message
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('خطا در ورود: $e')),
-                      );
+                    } on HttpException catch (e) {
+                      if (e.statusCode == 400) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text("رمز عبور اشتباه است"),
+                            backgroundColor: Colors.redAccent,
+                          ),
+                        );
+                        return;
+                      }
+                      if (e.statusCode == 404) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text("نام کاربری وجود ندارد"),
+                            backgroundColor: Colors.redAccent,
+                          ),
+                        );
+                        return;
+                      }
                     }
                   },
                   child: const Text(
