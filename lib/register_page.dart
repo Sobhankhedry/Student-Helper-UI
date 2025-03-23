@@ -20,6 +20,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
   String? _selectedField;
   String? _selectedUniversity;
+  String? _selectedRole;
 
   final List<String> _fields = [
     'مهندسی کامپیوتر',
@@ -36,6 +37,8 @@ class _RegisterPageState extends State<RegisterPage> {
     'دانشگاه امیرکبیر',
     'دانشگاه خلیج فارس',
   ];
+
+  final List<String> _Role = ['استاد', 'دانشجو'];
 
   @override
   void dispose() {
@@ -138,6 +141,20 @@ class _RegisterPageState extends State<RegisterPage> {
                 ),
                 const SizedBox(height: 16),
 
+                // role dropdown
+                _buildCustomDropdown(
+                  hint: 'نقش',
+                  value: _selectedRole,
+                  items: _Role,
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedRole = value;
+                    });
+                  },
+                ),
+
+                const SizedBox(height: 16),
+
                 // Username field
                 TextField(
                   controller: _usernameController,
@@ -225,6 +242,21 @@ class _RegisterPageState extends State<RegisterPage> {
                       );
                       return;
                     }
+                    if (_selectedRole == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            "لطفا رمز عبور را وارد کنید",
+                            textDirection: TextDirection.rtl,
+                            style: TextStyle(fontFamily: 'Vazir'),
+                          ),
+                          backgroundColor: Colors.redAccent,
+                        ),
+                      );
+                      return;
+                    }
+                    final role = _selectedRole;
+
                     final major = _selectedField!;
                     if (_passwordController.text.trim().isEmpty) {
                       ScaffoldMessenger.of(context).showSnackBar(
@@ -261,6 +293,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         university: university,
                         major: major,
                         fullName: name,
+                        role: role!,
                       );
                       final responseMessage = await ApiService().signUp(user);
                       ScaffoldMessenger.of(context).showSnackBar(
@@ -318,7 +351,7 @@ class _RegisterPageState extends State<RegisterPage> {
           child: ButtonTheme(
             alignedDropdown: true,
             child: DropdownButton<String>(
-              value: value,
+              value: items.contains(value) ? value : null,
               isExpanded: true,
               hint: Align(
                 alignment: Alignment.centerRight,
