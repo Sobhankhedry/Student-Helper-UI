@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_2/models/LoginRequest.dart';
+import 'package:flutter_application_2/models/User.dart';
 import 'package:flutter_application_2/services/api_services.dart';
 import 'register_page.dart';
 import 'dashboard_page.dart';
@@ -111,11 +112,13 @@ class _LoginPageState extends State<LoginPage> {
                         loginRequest,
                       );
 
+                      final user = await ApiService().login(loginRequest);
+
                       // Optionally: show success dialog/snack
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(responseMessage),
-                          backgroundColor: Colors.lightGreen,
+                        const SnackBar(
+                          content: Text('ورود موفقیت‌آمیز بود'),
+                          backgroundColor: Colors.green,
                         ),
                       );
 
@@ -125,6 +128,7 @@ class _LoginPageState extends State<LoginPage> {
                         MaterialPageRoute(
                           builder:
                               (context) => SimpleDashboard(
+                                currentUser: user,
                                 username: username.isEmpty ? 'کاربر' : username,
                               ),
                         ),

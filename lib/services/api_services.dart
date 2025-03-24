@@ -23,7 +23,7 @@ class ApiService {
   }
 
   // Loginu
-  Future<String> login(LoginRequest loginRequest) async {
+  Future<User> login(LoginRequest loginRequest) async {
     final response = await http.post(
       Uri.parse('$baseUrl/Login'),
       headers: {'Content-Type': 'application/json'},
@@ -31,7 +31,10 @@ class ApiService {
     );
 
     if (response.statusCode == 200) {
-      return response.body; // e.g., "welcome username"
+      final Map<String, dynamic> json = jsonDecode(
+        utf8.decode(response.bodyBytes),
+      );
+      return User.fromJson(json);
     } else {
       throw HttpException(response.statusCode, response.body);
     }
