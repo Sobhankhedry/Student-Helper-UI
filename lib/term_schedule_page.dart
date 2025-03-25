@@ -322,6 +322,9 @@ class _SchedulePageState extends State<SchedulePage> {
         filteredCourses = List.from(courses);
         timeOptions1 = courses.map((e) => e.hour).toSet().toList();
       });
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('رواله')));
     } catch (e) {
       debugPrint('Error: $e');
       ScaffoldMessenger.of(
