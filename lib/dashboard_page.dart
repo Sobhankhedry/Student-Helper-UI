@@ -6,12 +6,9 @@ import 'term_schedule_page.dart';
 
 class SimpleDashboard extends StatelessWidget {
   final String username;
-  final User currentUser;
-  const SimpleDashboard({
-    Key? key,
-    required this.username,
-    required this.currentUser,
-  }) : super(key: key);
+  final User user1;
+  const SimpleDashboard({Key? key, required this.username, required this.user1})
+    : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -159,7 +156,7 @@ class SimpleDashboard extends StatelessWidget {
     } else if (pageName == 'برنامه ترم') {
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => const SchedulePage()),
+        MaterialPageRoute(builder: (context) => SchedulePage(user: user1)),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(

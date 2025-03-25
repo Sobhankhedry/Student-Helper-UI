@@ -128,7 +128,7 @@ class _LoginPageState extends State<LoginPage> {
                         MaterialPageRoute(
                           builder:
                               (context) => SimpleDashboard(
-                                currentUser: user,
+                                user1: user,
                                 username: username.isEmpty ? 'کاربر' : username,
                               ),
                         ),

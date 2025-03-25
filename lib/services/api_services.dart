@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'package:flutter_application_2/models/Course.dart';
+import 'package:flutter_application_2/term_schedule_page.dart';
 import 'package:http/http.dart' as http;
 import '../models/User.dart';
 import '../models/LoginRequest.dart';
@@ -37,6 +39,31 @@ class ApiService {
       return User.fromJson(json);
     } else {
       throw HttpException(response.statusCode, response.body);
+    }
+  }
+
+  Future<List<Course>> fetchSchedule(String university, String major) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/TermCourse'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'university': university, 'major': major}),
+      );
+
+      if (response.statusCode == 200) {
+        final decoded = json.decode(utf8.decode(response.bodyBytes));
+        List<Course> entries = [];
+
+        for (var item in decoded) {
+          entries.add(Course.fromJson(item));
+        }
+
+        return entries;
+      } else {
+        throw Exception('خطا در دریافت برنامه: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('خطا در ارتباط با سرور: $e');
     }
   }
 }
