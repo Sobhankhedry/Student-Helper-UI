@@ -182,6 +182,18 @@ class ScheduleEntry {
     }
     return JalaliDate(1402, 1, 1); // Default date if parsing fails
   }
+
+  factory ScheduleEntry.fromCourse(Course course) {
+    return ScheduleEntry(
+      day: course.day,
+      date: course.date,
+      time: course.hour,
+      courseCode: course.courseCode,
+      courseGroup: course.group,
+      courseName: course.courseName,
+      classroom: course.classroom, // or use another field if needed
+    );
+  }
 }
 
 /**
@@ -321,6 +333,11 @@ class _SchedulePageState extends State<SchedulePage> {
         allCourses = courses;
         filteredCourses = List.from(courses);
         timeOptions1 = courses.map((e) => e.hour).toSet().toList();
+
+        // Convert to ScheduleEntry list
+        allEntries =
+            courses.map((course) => ScheduleEntry.fromCourse(course)).toList();
+        filteredEntries = List.from(allEntries);
       });
       ScaffoldMessenger.of(
         context,
