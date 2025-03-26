@@ -1,7 +1,24 @@
 import 'package:flutter/material.dart';
 
-// Define the primary theme color for the application
+
+const Color primaryColor = Color.fromARGB(255, 20, 165, 255);
+
+class Course {
+  final String name;
+  final String instructor;
+  final String classroom;
+  final Color color;
+
+  Course({
+    required this.name,
+    required this.instructor,
+    required this.classroom,
+    required this.color,
+  });
+}
+
 const Color primaryColor = Color.fromARGB(255, 37, 37, 213);
+
 
 class WeeklySchedulePage extends StatelessWidget {
   const WeeklySchedulePage({super.key});
@@ -11,13 +28,7 @@ class WeeklySchedulePage extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        backgroundColor: Colors.black,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: const Text(
+        title: Text(
           'برنامه هفتگی',
           style: TextStyle(
             color: Colors.white,
@@ -27,6 +38,12 @@ class WeeklySchedulePage extends StatelessWidget {
           ),
         ),
         centerTitle: true,
+        backgroundColor: Colors.black,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       body: SafeArea(
         child: Padding(
@@ -34,10 +51,22 @@ class WeeklySchedulePage extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.vertical,
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: _buildWeeklyScheduleTable(),
+                  ),
+                ),
+              ),
+              
+              
               SizedBox(height: 16),
 
               // Weekly schedule table
               Expanded(child: _buildWeeklyScheduleTable()),
+
 
               const SizedBox(height: 40),
             ],
@@ -68,15 +97,85 @@ class WeeklySchedulePage extends StatelessWidget {
       'جمعه',
     ];
 
+    // Define sample courses
+    final Map<String, Map<int, Course>> courseSchedule = {
+      'شنبه': {
+        0: Course(
+          name: 'ساختمان داده',
+          instructor: 'دکتر صحافی زاده',
+          classroom: 'B7',
+          color: Colors.blue.shade100,
+        ),
+        2: Course(
+          name: 'پایگاه داده‌ها',
+          instructor: 'دکتر طلعتیان',
+          classroom: 'B6',
+          color: Colors.green.shade100,
+        ),
+      },
+      'یکشنبه': {
+        1: Course(
+          name: 'نظریه زبان‌ها و ماشین‌ها',
+          instructor: 'دکتر طلعتیان',
+          classroom: 'B7',
+          color: Colors.purple.shade100,
+        ),
+        3: Course(
+          name: 'هوش مصنوعی',
+          instructor: 'دکتر محمدی',
+          classroom: 'B8',
+          color: Colors.orange.shade100,
+        ),
+      },
+      'دوشنبه': {
+        0: Course(
+          name: 'مهندسی نرم‌افزار',
+          instructor: 'دکتر صحافی زاده',
+          classroom: 'B7',
+          color: Colors.red.shade100,
+        ),
+        4: Course(
+          name: 'داده‌کاوی',
+          instructor: 'دکتر رستمی',
+          classroom: 'B6',
+          color: Colors.teal.shade100,
+        ),
+      },
+      'سه شنبه': {
+        2: Course(
+          name: 'سیستم‌های عامل',
+          instructor: 'استاد روشن',
+          classroom: 'B5',
+          color: Colors.amber.shade100,
+        ),
+        3: Course(
+          name: 'معماری کامپیوتر',
+          instructor: 'استاد روشن',
+          classroom: 'B9',
+          color: Colors.indigo.shade100,
+        ),
+      },
+      'چهارشنبه': {
+        1: Course(
+          name: 'شبکه‌های کامپیوتری',
+          instructor: 'استاد خیاطی',
+          classroom: 'B8',
+          color: Colors.pink.shade100,
+        ),
+        4: Course(
+          name: 'مدارهای منطقی',
+          instructor: 'دکتر ترابی',
+          classroom: 'B1',
+          color: Colors.cyan.shade100,
+        ),
+      },
+    };
+
     return Table(
-      border: TableBorder.all(color: Colors.black, width: 3),
+      border: TableBorder.all(color: Colors.black, width: 1.5),
+      defaultColumnWidth: const FixedColumnWidth(150),
       columnWidths: const {
-        0: FixedColumnWidth(60),
-        1: FixedColumnWidth(60),
-        2: FixedColumnWidth(60),
-        3: FixedColumnWidth(60),
-        4: FixedColumnWidth(60),
-        5: FixedColumnWidth(60),
+        0: FixedColumnWidth(80), // Day column
       },
       children: [
         // Header row with time slots
@@ -91,7 +190,7 @@ class WeeklySchedulePage extends StatelessWidget {
                     'ساعت',
                     style: TextStyle(
                       fontFamily: 'Vazir',
-                      color: Colors.white,
+                      color: Colors.black,
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
                     ),
@@ -114,7 +213,7 @@ class WeeklySchedulePage extends StatelessWidget {
                         timeSlot['start']!,
                         style: const TextStyle(
                           fontFamily: 'Vazir',
-                          color: Colors.white,
+                          color: Colors.black,
                           fontWeight: FontWeight.bold,
                           fontSize: 12,
                         ),
@@ -124,7 +223,7 @@ class WeeklySchedulePage extends StatelessWidget {
                         'تا',
                         style: TextStyle(
                           fontFamily: 'Vazir',
-                          color: Colors.white,
+                          color: Colors.black,
                           fontWeight: FontWeight.bold,
                           fontSize: 12,
                         ),
@@ -134,7 +233,7 @@ class WeeklySchedulePage extends StatelessWidget {
                         timeSlot['end']!,
                         style: const TextStyle(
                           fontFamily: 'Vazir',
-                          color: Colors.white,
+                          color: Colors.black,
                           fontWeight: FontWeight.bold,
                           fontSize: 12,
                         ),
@@ -148,7 +247,7 @@ class WeeklySchedulePage extends StatelessWidget {
           ],
         ),
 
-        // Day rows with empty cells for schedule entries
+        // Day rows with course data
         ...weekDays
             .map(
               (day) => TableRow(
@@ -156,7 +255,7 @@ class WeeklySchedulePage extends StatelessWidget {
                   // Day name cell
                   TableCell(
                     child: Container(
-                      height: 70,
+                      height: 100,
                       color: Colors.white,
                       child: Center(
                         child: Text(
@@ -172,17 +271,67 @@ class WeeklySchedulePage extends StatelessWidget {
                       ),
                     ),
                   ),
-                  // Empty cells for schedule entries
-                  ...List.generate(
-                    5,
-                    (index) => TableCell(
+                  // Course cells for each time slot
+                  ...List.generate(5, (index) {
+                    // Check if there's a course scheduled for this day and time slot
+                    final courseForThisSlot = courseSchedule[day]?[index];
+
+                    return TableCell(
                       child: Container(
-                        height: 70,
+                        height: 100,
+                        color: courseForThisSlot?.color ?? Colors.white,
+                        padding: const EdgeInsets.all(4),
+                        child:
+                            courseForThisSlot != null
+                                ? Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      courseForThisSlot.name,
+                                      style: const TextStyle(
+                                        fontFamily: 'Vazir',
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 12,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      courseForThisSlot.instructor,
+                                      style: const TextStyle(
+                                        fontFamily: 'Vazir',
+                                        fontSize: 10,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 2,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white.withOpacity(0.7),
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: Text(
+                                        'کلاس ${courseForThisSlot.classroom}',
+                                        style: const TextStyle(
+                                          fontFamily: 'Vazir',
+                                          fontSize: 10,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ),
+                                  ],
+                                )
+                                : const SizedBox(),
+                         height: 70,
                         color: Colors.white,
                         child: const SizedBox(height: 32),
                       ),
-                    ),
-                  ),
+                    );
+                  }),
                 ],
               ),
             )

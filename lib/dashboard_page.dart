@@ -3,12 +3,15 @@ import 'package:flutter_application_2/models/User.dart';
 import 'login_page.dart';
 import 'weekly_schedule_page.dart';
 import 'term_schedule_page.dart';
+import 'exam_schedule_page.dart';
 
 class SimpleDashboard extends StatelessWidget {
   final String username;
+
   final User user1;
   const SimpleDashboard({Key? key, required this.username, required this.user1})
     : super(key: key);
+
 
   @override
   Widget build(BuildContext context) {
@@ -70,6 +73,7 @@ class SimpleDashboard extends StatelessWidget {
                   ],
                 ),
               ),
+    
 
               const SizedBox(height: 24),
 
@@ -82,6 +86,7 @@ class SimpleDashboard extends StatelessWidget {
                   fontWeight: FontWeight.bold,
                 ),
               ),
+
 
               const SizedBox(height: 16),
 
@@ -157,6 +162,11 @@ class SimpleDashboard extends StatelessWidget {
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => SchedulePage(user: user1)),
+      );
+    } else if (pageName == 'برنامه امتحانی') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const ExamSchedulePage()),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
