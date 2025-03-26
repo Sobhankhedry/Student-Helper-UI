@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-// Define the primary theme color for the application
+
 const Color primaryColor = Color.fromARGB(255, 20, 165, 255);
 
 class Course {
@@ -16,6 +16,9 @@ class Course {
     required this.color,
   });
 }
+
+const Color primaryColor = Color.fromARGB(255, 37, 37, 213);
+
 
 class WeeklySchedulePage extends StatelessWidget {
   const WeeklySchedulePage({super.key});
@@ -48,7 +51,6 @@ class WeeklySchedulePage extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Weekly schedule table with scrolling
               Expanded(
                 child: SingleChildScrollView(
                   scrollDirection: Axis.vertical,
@@ -58,6 +60,13 @@ class WeeklySchedulePage extends StatelessWidget {
                   ),
                 ),
               ),
+              
+              
+              SizedBox(height: 16),
+
+              // Weekly schedule table
+              Expanded(child: _buildWeeklyScheduleTable()),
+
 
               const SizedBox(height: 40),
             ],
@@ -72,9 +81,9 @@ class WeeklySchedulePage extends StatelessWidget {
     final List<Map<String, String>> timeSlots = [
       {'start': '8:00', 'end': '10:00'},
       {'start': '10:00', 'end': '12:00'},
-      {'start': '12:30', 'end': '14:00'},
       {'start': '14:00', 'end': '16:00'},
       {'start': '16:00', 'end': '18:00'},
+      {'start': '18:00', 'end': '20:00'},
     ];
 
     // Define days of the week in Persian
@@ -317,6 +326,9 @@ class WeeklySchedulePage extends StatelessWidget {
                                   ],
                                 )
                                 : const SizedBox(),
+                         height: 70,
+                        color: Colors.white,
+                        child: const SizedBox(height: 32),
                       ),
                     );
                   }),
