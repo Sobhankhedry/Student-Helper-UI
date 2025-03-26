@@ -235,71 +235,7 @@ class _SchedulePageState extends State<SchedulePage> {
     super.initState();
 
     // Initialize sample data for the schedule
-    allEntries = [
-      ScheduleEntry(
-        day: 'شنبه',
-        date: '1402/07/01',
-        time: '08:00-10:00',
-        courseCode: '1234',
-        courseGroup: '01',
-        courseName: 'ریاضی 1',
-        classroom: '101',
-      ),
-      ScheduleEntry(
-        day: 'یکشنبه',
-        date: '1402/07/02',
-        time: '10:00-12:00',
-        courseCode: '2345',
-        courseGroup: '02',
-        courseName: 'فیزیک 1',
-        classroom: '102',
-      ),
-      ScheduleEntry(
-        day: 'دوشنبه',
-        date: '1402/07/03',
-        time: '13:00-15:00',
-        courseCode: '3456',
-        courseGroup: '01',
-        courseName: 'برنامه نویسی',
-        classroom: '103',
-      ),
-      ScheduleEntry(
-        day: 'سه شنبه',
-        date: '1402/07/04',
-        time: '15:00-17:00',
-        courseCode: '4567',
-        courseGroup: '03',
-        courseName: 'مدار منطقی',
-        classroom: '104',
-      ),
-      ScheduleEntry(
-        day: 'چهارشنبه',
-        date: '1402/07/05',
-        time: '08:00-10:00',
-        courseCode: '5678',
-        courseGroup: '02',
-        courseName: 'ساختمان داده',
-        classroom: '105',
-      ),
-      ScheduleEntry(
-        day: 'شنبه',
-        date: '1402/07/08',
-        time: '10:00-12:00',
-        courseCode: '6789',
-        courseGroup: '01',
-        courseName: 'سیستم عامل',
-        classroom: '106',
-      ),
-      ScheduleEntry(
-        day: 'یکشنبه',
-        date: '1402/07/09',
-        time: '13:00-15:00',
-        courseCode: '7890',
-        courseGroup: '02',
-        courseName: 'پایگاه داده',
-        classroom: '107',
-      ),
-    ];
+    allEntries = [];
 
     // Initialize filtered entries with all entries
     filteredEntries = List.from(allEntries);
@@ -773,10 +709,11 @@ class _SchedulePageState extends State<SchedulePage> {
                               ),
                             ),
                             child: TextField(
+                              textDirection: TextDirection.rtl,
                               controller: _searchController,
                               textAlign: TextAlign.right,
                               style: const TextStyle(
-                                color: Colors.white,
+                                color: Colors.black,
                                 fontSize: 14,
                               ),
                               decoration: InputDecoration(
@@ -1043,7 +980,7 @@ class _SchedulePageState extends State<SchedulePage> {
                                         });
                                       },
                                       items:
-                                          timeOptions
+                                          timeOptions1
                                               .map<DropdownMenuItem<String>>((
                                                 String value,
                                               ) {
@@ -1086,10 +1023,10 @@ class _SchedulePageState extends State<SchedulePage> {
                           ),
                           defaultColumnWidth: const FixedColumnWidth(120),
                           columnWidths: const {
-                            0: FixedColumnWidth(100), // Day
-                            1: FixedColumnWidth(120), // Date
-                            2: FixedColumnWidth(120), // Class Time
-                            3: FixedColumnWidth(180), // Course Name
+                            0: FixedColumnWidth(180), // Course Name
+                            1: FixedColumnWidth(100), // Day
+                            2: FixedColumnWidth(120), // Date
+                            3: FixedColumnWidth(120), // Class Time
                             4: FixedColumnWidth(100), // Classroom
                             5: FixedColumnWidth(100), // Course Group
                             6: FixedColumnWidth(100), // Course Code
@@ -1099,6 +1036,21 @@ class _SchedulePageState extends State<SchedulePage> {
                             TableRow(
                               decoration: BoxDecoration(color: primaryColor),
                               children: const [
+                                TableCell(
+                                  child: Padding(
+                                    padding: EdgeInsets.all(8.0),
+                                    child: Center(
+                                      child: Text(
+                                        'نام درس',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                          fontFamily: 'Vazir',
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
                                 TableCell(
                                   child: Padding(
                                     padding: EdgeInsets.all(8.0),
@@ -1144,21 +1096,7 @@ class _SchedulePageState extends State<SchedulePage> {
                                     ),
                                   ),
                                 ),
-                                TableCell(
-                                  child: Padding(
-                                    padding: EdgeInsets.all(8.0),
-                                    child: Center(
-                                      child: Text(
-                                        'نام درس',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold,
-                                          fontFamily: 'Vazir',
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
+
                                 TableCell(
                                   child: Padding(
                                     padding: EdgeInsets.all(8.0),
@@ -1212,9 +1150,9 @@ class _SchedulePageState extends State<SchedulePage> {
                             ),
 
                             // Add empty rows if filtered entries are less than 10
-                            if (filteredEntries.length < 7)
+                            if (filteredEntries.length < 1)
                               ...List.generate(
-                                7 - filteredEntries.length,
+                                1 - filteredEntries.length,
                                 (index) => _buildEmptyTableRow(),
                               ),
                           ],
@@ -1251,7 +1189,23 @@ class _SchedulePageState extends State<SchedulePage> {
             padding: const EdgeInsets.all(8.0),
             child: Center(
               child: Text(
+                entry.courseName,
+
+                style: const TextStyle(
+                  color: Colors.black,
+                  fontFamily: 'Vazir',
+                ),
+              ),
+            ),
+          ),
+        ),
+        TableCell(
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Center(
+              child: Text(
                 entry.day,
+
                 style: const TextStyle(
                   color: Colors.black,
                   fontFamily: 'Vazir',
@@ -1266,6 +1220,7 @@ class _SchedulePageState extends State<SchedulePage> {
             child: Center(
               child: Text(
                 formattedDate,
+
                 style: const TextStyle(
                   color: Colors.black,
                   fontFamily: 'Vazir',
@@ -1280,20 +1235,6 @@ class _SchedulePageState extends State<SchedulePage> {
             child: Center(
               child: Text(
                 entry.time,
-                style: const TextStyle(
-                  color: Colors.black,
-                  fontFamily: 'Vazir',
-                ),
-              ),
-            ),
-          ),
-        ),
-        TableCell(
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Center(
-              child: Text(
-                entry.courseName,
                 style: const TextStyle(
                   color: Colors.black,
                   fontFamily: 'Vazir',
