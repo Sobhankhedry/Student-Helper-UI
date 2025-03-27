@@ -1,5 +1,27 @@
 import 'package:flutter/material.dart';
 
+/**
+ * Exam Class
+ * 
+ * Represents an exam in the exam schedule.
+ * Contains information about the course name, instructor, classroom, and exam duration.
+ */
+class Exam {
+  final String courseName;
+  final String instructor;
+  final String classroom;
+  final String duration; // Duration in minutes
+  final Color color;
+
+  Exam({
+    required this.courseName,
+    required this.instructor,
+    required this.classroom,
+    required this.duration,
+    required this.color,
+  });
+}
+
 class ExamSchedulePage extends StatefulWidget {
   const ExamSchedulePage({super.key});
 
@@ -8,6 +30,108 @@ class ExamSchedulePage extends StatefulWidget {
 }
 
 class _ExamSchedulePageState extends State<ExamSchedulePage> {
+  // Sample exam data
+  late Map<String, Map<int, Exam>> examSchedule;
+
+  @override
+  void initState() {
+    super.initState();
+    
+    // Initialize exam schedule data
+    examSchedule = {
+      '1402/10/27': { 
+        0: Exam(
+          courseName: 'ساختمان داده',
+          instructor: 'دکتر صحافی زاده',
+          classroom: 'A1',
+          duration: '120',
+          color: Colors.blue.shade100,
+        ),
+      },
+      '1402/10/28': { 
+        1: Exam(
+          courseName: 'نظریه زبان‌ها و ماشین‌ها',
+          instructor: 'دکتر طلعتیان',
+          classroom: 'A1',
+          duration: '150',
+          color: Colors.purple.shade100,
+        ),
+      },
+      '1402/10/29': { 
+        3: Exam(
+          courseName: 'مهندسی نرم‌افزار',
+          instructor: 'دکتر صحافی زاده',
+          classroom: 'A2',
+          duration: '120',
+          color: Colors.red.shade100,
+        ),
+      },
+      '1402/10/30': { 
+        2: Exam(
+          courseName: 'پایگاه داده‌ها',
+          instructor: 'دکتر طلعتیان',
+          classroom: 'A1',
+          duration: '150',
+          color: Colors.green.shade100,
+        ),
+      },
+      '1402/11/1': { 
+        4: Exam(
+          courseName: 'سیستم‌های عامل',
+          instructor: 'استاد روشن',
+          classroom: 'B7',
+          duration: '120',
+          color: Colors.amber.shade100,
+        ),
+      },
+      '1402/11/5': {
+        0: Exam(
+          courseName: 'شبکه‌های کامپیوتری',
+          instructor: 'استاد خیاطی',
+          classroom: 'B8',
+          duration: '150',
+          color: Colors.pink.shade100,
+        ),
+      },
+      '1402/11/6': { 
+        2: Exam(
+          courseName: 'معماری کامپیوتر',
+          instructor: 'استاد روشن',
+          classroom: 'B7',
+          duration: '120',
+          color: Colors.indigo.shade100,
+        ),
+      },
+      '1402/11/7': { 
+        1: Exam(
+          courseName: 'مدارهای منطقی',
+          instructor: 'دکتر ترابی',
+          classroom: 'A1',
+          duration: '120',
+          color: Colors.cyan.shade100,
+        ),
+      },
+      '1402/11/8': { 
+        3: Exam(
+          courseName: 'داده‌کاوی',
+          instructor: 'دکتر رستمی',
+          classroom: 'A2',
+          duration: '150',
+          color: Colors.teal.shade100,
+        ),
+      },
+      '1402/11/9': { 
+        4: Exam(
+          courseName: 'هوش مصنوعی',
+          instructor: 'دکتر محمدی',
+          classroom: 'A1',
+          duration: '120',
+          color: Colors.orange.shade100,
+        ),
+      },
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
     return Directionality(
@@ -38,12 +162,16 @@ class _ExamSchedulePageState extends State<ExamSchedulePage> {
               _buildHeader(),
               Expanded(
                 child: SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      _buildScheduleTable(firstWeek: true),
-                      const SizedBox(height: 10),
-                      _buildScheduleTable(firstWeek: false),
-                    ],
+                  scrollDirection: Axis.vertical,
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Column(
+                      children: [
+                        _buildScheduleTable(firstWeek: true),
+                        const SizedBox(height: 10),
+                        _buildScheduleTable(firstWeek: false),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -264,23 +392,22 @@ class _ExamSchedulePageState extends State<ExamSchedulePage> {
    * @return A widget containing the time slot header
    */
   Widget _buildTimeSlotHeader(String timeText, Color backgroundColor) {
-    return Expanded(
-      child: Container(
-        height: 60,
-        decoration: BoxDecoration(
-          color: backgroundColor,
-          border: Border.all(color: Colors.grey.shade300),
-        ),
-        child: Center(
-          child: Text(
-            timeText,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
-              fontFamily: 'Vazir',
-            ),
+    return Container(
+      width: 150,
+      height: 60,
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        border: Border.all(color: Colors.grey.shade300),
+      ),
+      child: Center(
+        child: Text(
+          timeText,
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
+            fontFamily: 'Vazir',
           ),
         ),
       ),
@@ -288,7 +415,7 @@ class _ExamSchedulePageState extends State<ExamSchedulePage> {
   }
 
   /**
-   * Builds a day row with empty time slots
+   * Builds a day row with exam slots
    * 
    * @param day The name of the day
    * @param date The date string
@@ -300,7 +427,7 @@ class _ExamSchedulePageState extends State<ExamSchedulePage> {
         // Day cell
         Container(
           width: 80,
-          height: 50,
+          height: 80,
           decoration: BoxDecoration(
             color: Colors.white,
             border: Border.all(color: Colors.grey.shade300),
@@ -324,18 +451,100 @@ class _ExamSchedulePageState extends State<ExamSchedulePage> {
           ),
         ),
 
-        // Time slots for this day (empty cells)
+        // Time slots for this day (with exams if scheduled)
         for (int i = 0; i < 5; i++)
-          Expanded(
-            child: Container(
-              height: 50,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                border: Border.all(color: Colors.grey.shade300),
-              ),
-            ),
-          ),
+          _buildExamCell(date, i),
       ],
+    );
+  }
+
+  /**
+   * Builds an exam cell for a specific date and time slot
+   * 
+   * @param date The date string
+   * @param timeSlot The time slot index (0-4)
+   * @return A widget containing the exam cell
+   */
+  Widget _buildExamCell(String date, int timeSlot) {
+    // Check if there's an exam scheduled for this date and time slot
+    final examForThisSlot = examSchedule[date]?[timeSlot];
+    
+    return Container(
+      width: 150,
+      height: 80,
+      decoration: BoxDecoration(
+        color: examForThisSlot?.color ?? Colors.white,
+        border: Border.all(color: Colors.grey.shade300),
+      ),
+      padding: const EdgeInsets.all(4),
+      child: examForThisSlot != null
+          ? Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  examForThisSlot.courseName,
+                  style: const TextStyle(
+                    fontFamily: 'Vazir',
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  examForThisSlot.instructor,
+                  style: const TextStyle(
+                    fontFamily: 'Vazir',
+                    fontSize: 10,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 2),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.7),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        'کلاس ${examForThisSlot.classroom}',
+                        style: const TextStyle(
+                          fontFamily: 'Vazir',
+                          fontSize: 9,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.7),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        '${examForThisSlot.duration} دقیقه',
+                        style: const TextStyle(
+                          fontFamily: 'Vazir',
+                          fontSize: 9,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            )
+          : const SizedBox(),
     );
   }
 }
