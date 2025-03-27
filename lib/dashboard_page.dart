@@ -9,9 +9,8 @@ class SimpleDashboard extends StatelessWidget {
   final String username;
 
   final User user1;
-  const SimpleDashboard({Key? key, required this.username, required this.user1})
+  SimpleDashboard({Key? key, required this.username, required this.user1})
     : super(key: key);
-
 
   @override
   Widget build(BuildContext context) {
@@ -73,7 +72,6 @@ class SimpleDashboard extends StatelessWidget {
                   ],
                 ),
               ),
-    
 
               const SizedBox(height: 24),
 
@@ -86,7 +84,6 @@ class SimpleDashboard extends StatelessWidget {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-
 
               const SizedBox(height: 16),
 
@@ -166,7 +163,9 @@ class SimpleDashboard extends StatelessWidget {
     } else if (pageName == 'برنامه امتحانی') {
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => const ExamSchedulePage()),
+        MaterialPageRoute(
+          builder: (context) => ExamSchedulePage(currentUser: user1),
+        ),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(

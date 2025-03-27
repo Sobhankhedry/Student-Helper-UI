@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-
 const Color primaryColor = Color.fromARGB(255, 20, 165, 255);
 
 class Course {
@@ -16,9 +15,6 @@ class Course {
     required this.color,
   });
 }
-
-const Color primaryColor = Color.fromARGB(255, 37, 37, 213);
-
 
 class WeeklySchedulePage extends StatelessWidget {
   const WeeklySchedulePage({super.key});
@@ -60,13 +56,8 @@ class WeeklySchedulePage extends StatelessWidget {
                   ),
                 ),
               ),
-              
-              
+
               SizedBox(height: 16),
-
-              // Weekly schedule table
-              Expanded(child: _buildWeeklyScheduleTable()),
-
 
               const SizedBox(height: 40),
             ],
@@ -326,9 +317,6 @@ class WeeklySchedulePage extends StatelessWidget {
                                   ],
                                 )
                                 : const SizedBox(),
-                         height: 70,
-                        color: Colors.white,
-                        child: const SizedBox(height: 32),
                       ),
                     );
                   }),

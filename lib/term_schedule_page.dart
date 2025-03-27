@@ -268,7 +268,9 @@ class _SchedulePageState extends State<SchedulePage> {
       setState(() {
         allCourses = courses;
         filteredCourses = List.from(courses);
-        timeOptions1 = courses.map((e) => e.hour).toSet().toList();
+        timeOptions1 =
+            courses.map((e) => e.hour).toSet().toList()
+              ..sort((a, b) => _parseTime(a).compareTo(_parseTime(b)));
 
         // Convert to ScheduleEntry list
         allEntries =
@@ -284,6 +286,11 @@ class _SchedulePageState extends State<SchedulePage> {
         context,
       ).showSnackBar(const SnackBar(content: Text('خطا در دریافت برنامه')));
     }
+  }
+
+  DateTime _parseTime(String time) {
+    final parts = time.split(':');
+    return DateTime(0, 0, 0, int.parse(parts[0]), int.parse(parts[1]));
   }
 
   @override
