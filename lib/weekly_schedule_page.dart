@@ -17,8 +17,19 @@ class Course {
   });
 }
 
-class WeeklySchedulePage extends StatelessWidget {
+class WeeklySchedulePage extends StatefulWidget {
   const WeeklySchedulePage({super.key});
+
+  @override
+  State<WeeklySchedulePage> createState() => _WeeklySchedulePageState();
+}
+
+class _WeeklySchedulePageState extends State<WeeklySchedulePage> {
+  // Selected week (default to week 1)
+  int _selectedWeek = 1;
+  
+  // Total number of weeks in a term
+  final int _totalWeeks = 16;
 
   @override
   Widget build(BuildContext context) {
@@ -48,6 +59,11 @@ class WeeklySchedulePage extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Week selector dropdown
+              _buildWeekSelector(),
+              
+              const SizedBox(height: 16),
+              
               // Weekly schedule table with scrolling
               Expanded(
                 child: SingleChildScrollView(
@@ -63,6 +79,72 @@ class WeeklySchedulePage extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  // Build the week selector dropdown
+  Widget _buildWeekSelector() {
+    return Container(
+      margin: const EdgeInsets.only(top: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.grey[900],
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: primaryColor, width: 1),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          // Week label
+          Text(
+            'انتخاب هفته:',
+            style: TextStyle(
+              color: Colors.white,
+              fontFamily: 'Vazir',
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          
+          // Dropdown for week selection
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            decoration: BoxDecoration(
+              color: primaryColor,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: DropdownButton<int>(
+              value: _selectedWeek,
+              icon: const Icon(Icons.arrow_drop_down, color: Colors.black),
+              elevation: 16,
+              style: const TextStyle(
+                color: Colors.black,
+                fontFamily: 'Vazir',
+                fontWeight: FontWeight.bold,
+              ),
+              underline: Container(height: 0),
+              dropdownColor: primaryColor,
+              onChanged: (int? newValue) {
+                setState(() {
+                  _selectedWeek = newValue!;
+                });
+              },
+              items: List.generate(_totalWeeks, (index) {
+                return DropdownMenuItem<int>(
+                  value: index + 1,
+                  child: Text(
+                    'هفته ${index + 1}',
+                    style: const TextStyle(
+                      fontFamily: 'Vazir',
+                      fontSize: 14,
+                    ),
+                  ),
+                );
+              }),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -88,79 +170,164 @@ class WeeklySchedulePage extends StatelessWidget {
       'جمعه',
     ];
 
-    // Define sample courses
-    final Map<String, Map<int, Course>> courseSchedule = {
-      'شنبه': {
-        0: Course(
-          name: 'ساختمان داده',
-          instructor: 'دکتر صحافی زاده',
-          classroom: 'B7',
-          color: Colors.blue.shade100,
-        ),
-        2: Course(
-          name: 'پایگاه داده‌ها',
-          instructor: 'دکتر طلعتیان',
-          classroom: 'B6',
-          color: Colors.green.shade100,
-        ),
+    // Define sample courses for different weeks
+    final Map<int, Map<String, Map<int, Course>>> weeklySchedules = {
+      // Week 1
+      1: {
+        'شنبه': {
+          0: Course(
+            name: 'ساختمان داده',
+            instructor: 'دکتر صحافی زاده',
+            classroom: 'B7',
+            color: Colors.blue.shade100,
+          ),
+          2: Course(
+            name: 'پایگاه داده‌ها',
+            instructor: 'دکتر طلعتیان',
+            classroom: 'B6',
+            color: Colors.green.shade100,
+          ),
+        },
+        'یکشنبه': {
+          1: Course(
+            name: 'نظریه زبان‌ها و ماشین‌ها',
+            instructor: 'دکتر طلعتیان',
+            classroom: 'B7',
+            color: Colors.purple.shade100,
+          ),
+          3: Course(
+            name: 'هوش مصنوعی',
+            instructor: 'دکتر محمدی',
+            classroom: 'B8',
+            color: Colors.orange.shade100,
+          ),
+        },
+        'دوشنبه': {
+          0: Course(
+            name: 'مهندسی نرم‌افزار',
+            instructor: 'دکتر صحافی زاده',
+            classroom: 'B7',
+            color: Colors.red.shade100,
+          ),
+          4: Course(
+            name: 'داده‌کاوی',
+            instructor: 'دکتر رستمی',
+            classroom: 'B6',
+            color: Colors.teal.shade100,
+          ),
+        },
+        'سه شنبه': {
+          2: Course(
+            name: 'سیستم‌های عامل',
+            instructor: 'استاد روشن',
+            classroom: 'B5',
+            color: Colors.amber.shade100,
+          ),
+          3: Course(
+            name: 'معماری کامپیوتر',
+            instructor: 'استاد روشن',
+            classroom: 'B9',
+            color: Colors.indigo.shade100,
+          ),
+        },
+        'چهارشنبه': {
+          1: Course(
+            name: 'شبکه‌های کامپیوتری',
+            instructor: 'استاد خیاطی',
+            classroom: 'B8',
+            color: Colors.pink.shade100,
+          ),
+          4: Course(
+            name: 'مدارهای منطقی',
+            instructor: 'دکتر ترابی',
+            classroom: 'B1',
+            color: Colors.cyan.shade100,
+          ),
+        },
       },
-      'یکشنبه': {
-        1: Course(
-          name: 'نظریه زبان‌ها و ماشین‌ها',
-          instructor: 'دکتر طلعتیان',
-          classroom: 'B7',
-          color: Colors.purple.shade100,
-        ),
-        3: Course(
-          name: 'هوش مصنوعی',
-          instructor: 'دکتر محمدی',
-          classroom: 'B8',
-          color: Colors.orange.shade100,
-        ),
-      },
-      'دوشنبه': {
-        0: Course(
-          name: 'مهندسی نرم‌افزار',
-          instructor: 'دکتر صحافی زاده',
-          classroom: 'B7',
-          color: Colors.red.shade100,
-        ),
-        4: Course(
-          name: 'داده‌کاوی',
-          instructor: 'دکتر رستمی',
-          classroom: 'B6',
-          color: Colors.teal.shade100,
-        ),
-      },
-      'سه شنبه': {
-        2: Course(
-          name: 'سیستم‌های عامل',
-          instructor: 'استاد روشن',
-          classroom: 'B5',
-          color: Colors.amber.shade100,
-        ),
-        3: Course(
-          name: 'معماری کامپیوتر',
-          instructor: 'استاد روشن',
-          classroom: 'B9',
-          color: Colors.indigo.shade100,
-        ),
-      },
-      'چهارشنبه': {
-        1: Course(
-          name: 'شبکه‌های کامپیوتری',
-          instructor: 'استاد خیاطی',
-          classroom: 'B8',
-          color: Colors.pink.shade100,
-        ),
-        4: Course(
-          name: 'مدارهای منطقی',
-          instructor: 'دکتر ترابی',
-          classroom: 'B1',
-          color: Colors.cyan.shade100,
-        ),
+      
+      // Week 2
+      2: {
+        'شنبه': {
+          0: Course(
+            name: 'ساختمان داده',
+            instructor: 'دکتر صحافی زاده',
+            classroom: 'B7',
+            color: Colors.blue.shade100,
+          ),
+          3: Course(
+            name: 'هوش مصنوعی',
+            instructor: 'دکتر محمدی',
+            classroom: 'B8',
+            color: Colors.orange.shade100,
+          ),
+        },
+        'یکشنبه': {
+          1: Course(
+            name: 'نظریه زبان‌ها و ماشین‌ها',
+            instructor: 'دکتر طلعتیان',
+            classroom: 'B7',
+            color: Colors.purple.shade100,
+          ),
+          4: Course(
+            name: 'مدارهای منطقی',
+            instructor: 'دکتر ترابی',
+            classroom: 'B1',
+            color: Colors.cyan.shade100,
+          ),
+        },
+        'دوشنبه': {
+          2: Course(
+            name: 'پایگاه داده‌ها',
+            instructor: 'دکتر طلعتیان',
+            classroom: 'B6',
+            color: Colors.green.shade100,
+          ),
+          4: Course(
+            name: 'داده‌کاوی',
+            instructor: 'دکتر رستمی',
+            classroom: 'B6',
+            color: Colors.teal.shade100,
+          ),
+        },
+        'سه شنبه': {
+          0: Course(
+            name: 'مهندسی نرم‌افزار',
+            instructor: 'دکتر صحافی زاده',
+            classroom: 'B7',
+            color: Colors.red.shade100,
+          ),
+          3: Course(
+            name: 'معماری کامپیوتر',
+            instructor: 'استاد روشن',
+            classroom: 'B9',
+            color: Colors.indigo.shade100,
+          ),
+        },
+        'چهارشنبه': {
+          1: Course(
+            name: 'شبکه‌های کامپیوتری',
+            instructor: 'استاد خیاطی',
+            classroom: 'B8',
+            color: Colors.pink.shade100,
+          ),
+          2: Course(
+            name: 'سیستم‌های عامل',
+            instructor: 'استاد روشن',
+            classroom: 'B5',
+            color: Colors.amber.shade100,
+          ),
+        },
       },
     };
+    
+    // For weeks 3-16, use the same schedule as week 1 or 2 alternately
+    for (int i = 3; i <= _totalWeeks; i++) {
+      weeklySchedules[i] = weeklySchedules[i % 2 == 1 ? 1 : 2]!;
+    }
+
+    // Get the schedule for the selected week
+    final courseSchedule = weeklySchedules[_selectedWeek] ?? weeklySchedules[1]!;
 
     return Table(
       border: TableBorder.all(color: Colors.black, width: 1.5),
@@ -328,3 +495,4 @@ class WeeklySchedulePage extends StatelessWidget {
     );
   }
 }
+
