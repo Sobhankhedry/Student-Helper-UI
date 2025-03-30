@@ -138,6 +138,7 @@ class ScheduleEntry {
   final String courseGroup;
   final String courseName;
   final String classroom;
+  final bool isOffered;
 
   ScheduleEntry({
     required this.day,
@@ -147,6 +148,7 @@ class ScheduleEntry {
     required this.courseGroup,
     required this.courseName,
     required this.classroom,
+    this.isOffered = true,
   }) : jalaliDate = _parseDate(date);
 
   /**
@@ -190,6 +192,7 @@ class _SchedulePageState extends State<SchedulePage> {
   JalaliDate? endDate;
   String? selectedDay;
   String? selectedTime;
+  String? selectedCourseStatus;
   String searchQuery = '';
 
   // Text controller for search field
@@ -217,6 +220,7 @@ class _SchedulePageState extends State<SchedulePage> {
         courseGroup: '01',
         courseName: 'ریاضی 1',
         classroom: '101',
+        isOffered: true,
       ),
       ScheduleEntry(
         day: 'یکشنبه',
@@ -226,6 +230,7 @@ class _SchedulePageState extends State<SchedulePage> {
         courseGroup: '02',
         courseName: 'فیزیک 1',
         classroom: '102',
+        isOffered: true,
       ),
       ScheduleEntry(
         day: 'دوشنبه',
@@ -235,6 +240,7 @@ class _SchedulePageState extends State<SchedulePage> {
         courseGroup: '01',
         courseName: 'برنامه نویسی',
         classroom: '103',
+        isOffered: true,
       ),
       ScheduleEntry(
         day: 'سه شنبه',
@@ -244,6 +250,7 @@ class _SchedulePageState extends State<SchedulePage> {
         courseGroup: '03',
         courseName: 'مدار منطقی',
         classroom: '104',
+        isOffered: false,
       ),
       ScheduleEntry(
         day: 'چهارشنبه',
@@ -253,6 +260,7 @@ class _SchedulePageState extends State<SchedulePage> {
         courseGroup: '02',
         courseName: 'ساختمان داده',
         classroom: '105',
+        isOffered: true,
       ),
       ScheduleEntry(
         day: 'شنبه',
@@ -262,6 +270,7 @@ class _SchedulePageState extends State<SchedulePage> {
         courseGroup: '01',
         courseName: 'سیستم عامل',
         classroom: '106',
+        isOffered: false,
       ),
       ScheduleEntry(
         day: 'یکشنبه',
@@ -271,6 +280,7 @@ class _SchedulePageState extends State<SchedulePage> {
         courseGroup: '02',
         courseName: 'پایگاه داده',
         classroom: '107',
+        isOffered: true,
       ),
     ];
 
@@ -521,13 +531,23 @@ Future<void> _showJalaliDatePicker(BuildContext context, bool isStartDate) async
         // Time filter
         bool matchesTime = selectedTime == null || entry.time == selectedTime;
         
+        // Course status filter
+        bool matchesCourseStatus = true;
+        if (selectedCourseStatus != null) {
+          if (selectedCourseStatus == 'offered') {
+            matchesCourseStatus = entry.isOffered;
+          } else if (selectedCourseStatus == 'notOffered') {
+            matchesCourseStatus = !entry.isOffered;
+          }
+        }
+        
         // Search query filter
         bool matchesSearch = searchQuery.isEmpty ||
             entry.courseName.contains(searchQuery) ||
             entry.courseCode.contains(searchQuery);
 
         // Entry must match all applied filters
-        return matchesDateRange && matchesDay && matchesTime && matchesSearch;
+        return matchesDateRange && matchesDay && matchesTime && matchesCourseStatus && matchesSearch;
       }).toList();
     });
   }
@@ -543,6 +563,7 @@ Future<void> _showJalaliDatePicker(BuildContext context, bool isStartDate) async
       endDate = null;
       selectedDay = null;
       selectedTime = null;
+      selectedCourseStatus = null;
       searchQuery = '';
       _searchController.clear();
       filteredEntries = List.from(allEntries);
@@ -925,6 +946,89 @@ Future<void> _showJalaliDatePicker(BuildContext context, bool isStartDate) async
                         ),
                       ],
                     ),
+                    const SizedBox(height: 12),
+  
+                    // Course status filter
+                    Container(
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[800],
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: selectedCourseStatus != null 
+                              ? primaryColor 
+                              : Colors.grey[700]!,
+                          width: 1,
+                        ),
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              color: selectedCourseStatus != null 
+                                  ? primaryColor.withOpacity(0.2) 
+                                  : Colors.grey.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Icon(
+                              Icons.book,
+                              color: selectedCourseStatus != null 
+                                  ? primaryColor 
+                                  : Colors.grey,
+                              size: 16,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: DropdownButtonHideUnderline(
+                              child: DropdownButton<String>(
+                                isExpanded: true,
+                                value: selectedCourseStatus,
+                                hint: const Text(
+                                  'وضعیت ارائه دروس',
+                                  style: TextStyle(
+                                    color: Colors.grey,
+                                    fontSize: 12,
+                                    fontFamily: 'Vazir',
+                                  ),
+                                ),
+                                icon: const Icon(Icons.arrow_drop_down, color: Colors.grey, size: 20),
+                                dropdownColor: Colors.grey[800],
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontFamily: 'Vazir',
+                                ),
+                                onChanged: (value) {
+                                  setState(() {
+                                    selectedCourseStatus = value;
+                                    applyFilters();
+                                  });
+                                },
+                                items: [
+                                  DropdownMenuItem<String>(
+                                    value: 'offered',
+                                    child: Text(
+                                      'دروس ارائه شده',
+                                      style: const TextStyle(fontFamily: 'Vazir'),
+                                    ),
+                                  ),
+                                  DropdownMenuItem<String>(
+                                    value: 'notOffered',
+                                    child: Text(
+                                      'دروس ارائه نشده',
+                                      style: const TextStyle(fontFamily: 'Vazir'),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -949,13 +1053,14 @@ Future<void> _showJalaliDatePicker(BuildContext context, bool isStartDate) async
                           ),
                           defaultColumnWidth: const FixedColumnWidth(120),
                           columnWidths: const {
-                            0: FixedColumnWidth(100), // Day
-                            1: FixedColumnWidth(120), // Date
-                            2: FixedColumnWidth(120), // Class Time
-                            3: FixedColumnWidth(180), // Course Name
+                            0: FixedColumnWidth(180), // Course Name (now first)
+                            1: FixedColumnWidth(100), // Day
+                            2: FixedColumnWidth(120), // Date
+                            3: FixedColumnWidth(120), // Class Time
                             4: FixedColumnWidth(100), // Classroom
                             5: FixedColumnWidth(100), // Course Group
                             6: FixedColumnWidth(100), // Course Code
+                            7: FixedColumnWidth(100), // Offering Status
                           },
                           children: [
                             // Header row
@@ -964,6 +1069,22 @@ Future<void> _showJalaliDatePicker(BuildContext context, bool isStartDate) async
                                 color: primaryColor,
                               ),
                               children: const [
+                                // Course Name (now first)
+                                TableCell(
+                                  child: Padding(
+                                    padding: EdgeInsets.all(8.0),
+                                    child: Center(
+                                      child: Text(
+                                        'نام درس',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                          fontFamily: 'Vazir',
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
                                 TableCell(
                                   child: Padding(
                                     padding: EdgeInsets.all(8.0),
@@ -1000,21 +1121,6 @@ Future<void> _showJalaliDatePicker(BuildContext context, bool isStartDate) async
                                     child: Center(
                                       child: Text(
                                         'ساعت کلاس',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold,
-                                          fontFamily: 'Vazir',
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                TableCell(
-                                  child: Padding(
-                                    padding: EdgeInsets.all(8.0),
-                                    child: Center(
-                                      child: Text(
-                                        'نام درس',
                                         style: TextStyle(
                                           color: Colors.white,
                                           fontWeight: FontWeight.bold,
@@ -1069,6 +1175,21 @@ Future<void> _showJalaliDatePicker(BuildContext context, bool isStartDate) async
                                     ),
                                   ),
                                 ),
+                                TableCell(
+                                  child: Padding(
+                                    padding: EdgeInsets.all(8.0),
+                                    child: Center(
+                                      child: Text(
+                                        'وضعیت ارائه',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                          fontFamily: 'Vazir',
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
                               ],
                             ),
                             // Data rows
@@ -1111,48 +1232,7 @@ Future<void> _showJalaliDatePicker(BuildContext context, bool isStartDate) async
         color: Colors.white,
       ),
       children: [
-        TableCell(
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Center(
-              child: Text(
-                entry.day,
-                style: const TextStyle(
-                  color: Colors.black,
-                  fontFamily: 'Vazir',
-                ),
-              ),
-            ),
-          ),
-        ),
-        TableCell(
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Center(
-              child: Text(
-                formattedDate,
-                style: const TextStyle(
-                  color: Colors.black,
-                  fontFamily: 'Vazir',
-                ),
-              ),
-            ),
-          ),
-        ),
-        TableCell(
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Center(
-              child: Text(
-                entry.time,
-                style: const TextStyle(
-                  color: Colors.black,
-                  fontFamily: 'Vazir',
-                ),
-              ),
-            ),
-          ),
-        ),
+        // Course Name - Always show this (now first)
         TableCell(
           child: Padding(
             padding: const EdgeInsets.all(8.0),
@@ -1162,17 +1242,19 @@ Future<void> _showJalaliDatePicker(BuildContext context, bool isStartDate) async
                 style: const TextStyle(
                   color: Colors.black,
                   fontFamily: 'Vazir',
+                  fontWeight: FontWeight.bold,
                 ),
               ),
             ),
           ),
         ),
+        // Day
         TableCell(
           child: Padding(
             padding: const EdgeInsets.all(8.0),
             child: Center(
               child: Text(
-                entry.classroom,
+                entry.isOffered ? entry.day : '',
                 style: const TextStyle(
                   color: Colors.black,
                   fontFamily: 'Vazir',
@@ -1181,12 +1263,13 @@ Future<void> _showJalaliDatePicker(BuildContext context, bool isStartDate) async
             ),
           ),
         ),
+        // Date
         TableCell(
           child: Padding(
             padding: const EdgeInsets.all(8.0),
             child: Center(
               child: Text(
-                entry.courseGroup,
+                entry.isOffered ? formattedDate : '',
                 style: const TextStyle(
                   color: Colors.black,
                   fontFamily: 'Vazir',
@@ -1195,15 +1278,85 @@ Future<void> _showJalaliDatePicker(BuildContext context, bool isStartDate) async
             ),
           ),
         ),
+        // Time
         TableCell(
           child: Padding(
             padding: const EdgeInsets.all(8.0),
             child: Center(
               child: Text(
-                entry.courseCode,
+                entry.isOffered ? entry.time : '',
                 style: const TextStyle(
                   color: Colors.black,
                   fontFamily: 'Vazir',
+                ),
+              ),
+            ),
+          ),
+        ),
+        // Classroom
+        TableCell(
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Center(
+              child: Text(
+                entry.isOffered ? entry.classroom : '',
+                style: const TextStyle(
+                  color: Colors.black,
+                  fontFamily: 'Vazir',
+                ),
+              ),
+            ),
+          ),
+        ),
+        // Course Group
+        TableCell(
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Center(
+              child: Text(
+                entry.isOffered ? entry.courseGroup : '',
+                style: const TextStyle(
+                  color: Colors.black,
+                  fontFamily: 'Vazir',
+                ),
+              ),
+            ),
+          ),
+        ),
+        // Course Code
+        TableCell(
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Center(
+              child: Text(
+                entry.isOffered ? entry.courseCode : '',
+                style: const TextStyle(
+                  color: Colors.black,
+                  fontFamily: 'Vazir',
+                ),
+              ),
+            ),
+          ),
+        ),
+        // Offering Status
+        TableCell(
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Center(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: entry.isOffered ? Colors.green.shade100 : Colors.red.shade100,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  entry.isOffered ? 'ارائه شده' : 'ارائه نشده',
+                  style: TextStyle(
+                    color: entry.isOffered ? Colors.green.shade800 : Colors.red.shade800,
+                    fontFamily: 'Vazir',
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ),
@@ -1224,7 +1377,7 @@ Future<void> _showJalaliDatePicker(BuildContext context, bool isStartDate) async
         color: Colors.white,
       ),
       children: List.generate(
-        7,
+        8, // Updated to include the new column
         (index) => const TableCell(
           child: SizedBox(
             height: 40,
@@ -1240,3 +1393,4 @@ Future<void> _showJalaliDatePicker(BuildContext context, bool isStartDate) async
     );
   }
 }
+
