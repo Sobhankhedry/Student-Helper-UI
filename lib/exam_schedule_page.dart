@@ -90,7 +90,6 @@ class _ExamSchedulePageState extends State<ExamSchedulePage> {
         final date = course.finalExam.trim();
         int slot = getSlotIndex(course.hour);
 
-        // فقط اگر تاریخ امتحان در لیست‌های بالا باشه
         if (slot != -1 &&
             (week1Dates.contains(date) || week2Dates.contains(date))) {
           schedule[date] ??= {};

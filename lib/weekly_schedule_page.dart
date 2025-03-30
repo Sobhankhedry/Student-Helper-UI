@@ -26,9 +26,83 @@ class WeeklySchedulePage extends StatefulWidget {
 class _WeeklySchedulePageState extends State<WeeklySchedulePage> {
   // Selected week (default to week 1)
   int _selectedWeek = 1;
-  
+
   // Total number of weeks in a term
   final int _totalWeeks = 16;
+
+  final Map<String, int> dateToWeek = {
+    // هفته اول
+    '1402/1/1': 1,
+    '1402/1/2': 1,
+    '1402/1/3': 1,
+    '1402/1/4': 1,
+    '1402/1/5': 1,
+    '1402/1/6': 1,
+    '1402/1/7': 1,
+
+    // هفته دوم
+    '1402/1/8': 2,
+    '1402/1/9': 2,
+    '1402/1/10': 2,
+    '1402/1/11': 2,
+    '1402/1/12': 2,
+    '1402/1/13': 2,
+    '1402/1/14': 2,
+
+    // هفته سوم
+    '1402/1/15': 3,
+    '1402/1/16': 3,
+    '1402/1/17': 3,
+    '1402/1/18': 3,
+    '1402/1/19': 3,
+    '1402/1/20': 3,
+    '1402/1/21': 3,
+
+    // هفته چهارم
+    '1402/1/22': 4,
+    '1402/1/23': 4,
+    '1402/1/24': 4,
+    '1402/1/25': 4,
+    '1402/1/26': 4,
+    '1402/1/27': 4,
+    '1402/1/28': 4,
+
+    // هفته پنجم
+    '1402/1/29': 5,
+    '1402/1/30': 5,
+    '1402/1/31': 5,
+    '1402/2/1': 5,
+    '1402/2/2': 5,
+    '1402/2/3': 5,
+    '1402/2/4': 5,
+
+    // هفته ششم
+    '1402/2/5': 6,
+    '1402/2/6': 6,
+    '1402/2/7': 6,
+    '1402/2/8': 6,
+    '1402/2/9': 6,
+    '1402/2/10': 6,
+    '1402/2/11': 6,
+
+    // هفته هفتم
+    '1402/2/12': 7,
+    '1402/2/13': 7,
+    '1402/2/14': 7,
+    '1402/2/15': 7,
+    '1402/2/16': 7,
+    '1402/2/17': 7,
+    '1402/2/18': 7,
+
+    // هفته هشتم
+    '1402/2/19': 8,
+    '1402/2/20': 8,
+    '1402/2/21': 8,
+    '1402/2/22': 8,
+    '1402/2/23': 8,
+    '1402/2/24': 8,
+    '1402/2/25': 8,
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -58,13 +132,12 @@ class _WeeklySchedulePageState extends State<WeeklySchedulePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-                            // Week selector dropdown
+              // Week selector dropdown
               _buildWeekSelector(),
-              
-              const SizedBox(height: 16),
-              
-              // Weekly schedule table with scrolling
 
+              const SizedBox(height: 16),
+
+              // Weekly schedule table with scrolling
               Expanded(
                 child: SingleChildScrollView(
                   scrollDirection: Axis.vertical,
@@ -108,7 +181,7 @@ class _WeeklySchedulePageState extends State<WeeklySchedulePage> {
               fontWeight: FontWeight.bold,
             ),
           ),
-          
+
           // Dropdown for week selection
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -137,10 +210,7 @@ class _WeeklySchedulePageState extends State<WeeklySchedulePage> {
                   value: index + 1,
                   child: Text(
                     'هفته ${index + 1}',
-                    style: const TextStyle(
-                      fontFamily: 'Vazir',
-                      fontSize: 14,
-                    ),
+                    style: const TextStyle(fontFamily: 'Vazir', fontSize: 14),
                   ),
                 );
               }),
@@ -247,7 +317,7 @@ class _WeeklySchedulePageState extends State<WeeklySchedulePage> {
           ),
         },
       },
-      
+
       // Week 2
       2: {
         'شنبه': {
@@ -322,14 +392,15 @@ class _WeeklySchedulePageState extends State<WeeklySchedulePage> {
         },
       },
     };
-    
+
     // For weeks 3-16, use the same schedule as week 1 or 2 alternately
     for (int i = 3; i <= _totalWeeks; i++) {
       weeklySchedules[i] = weeklySchedules[i % 2 == 1 ? 1 : 2]!;
     }
 
     // Get the schedule for the selected week
-    final courseSchedule = weeklySchedules[_selectedWeek] ?? weeklySchedules[1]!;
+    final courseSchedule =
+        weeklySchedules[_selectedWeek] ?? weeklySchedules[1]!;
 
     return Table(
       border: TableBorder.all(color: Colors.black, width: 1.5),
@@ -497,4 +568,3 @@ class _WeeklySchedulePageState extends State<WeeklySchedulePage> {
     );
   }
 }
-
