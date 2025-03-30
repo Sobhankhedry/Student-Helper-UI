@@ -99,6 +99,39 @@ class ApiService {
       throw Exception('خطا در ارتباط با سرور: $e');
     }
   }
+
+  Future<List<Course>> fetchWeekly(
+    String university,
+    String major,
+    String username,
+  ) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/Weekly'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'university': university,
+          'major': major,
+          'userName': username,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final decoded = json.decode(utf8.decode(response.bodyBytes));
+        List<Course> entriess = [];
+
+        for (var item in decoded) {
+          entriess.add(Course.fromJson(item));
+        }
+
+        return entriess;
+      } else {
+        throw Exception('خطا در دریافت برنامه: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('خطا در ارتباط با سرور: $e');
+    }
+  }
 }
 
 class HttpException implements Exception {

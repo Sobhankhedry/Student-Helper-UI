@@ -1,14 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_2/models/Course.dart';
+import 'package:flutter_application_2/models/User.dart';
+import 'package:flutter_application_2/services/api_services.dart';
 
 const Color primaryColor = Color.fromARGB(255, 20, 165, 255);
 
-class Course {
+class thisCourse {
   final String name;
   final String instructor;
   final String classroom;
   final Color color;
+  final String date; // e.g. '1402/2/10'
+  final String day; // e.g. 'دوشنبه'
+  final String hour;
 
-  Course({
+  thisCourse({
+    required this.date,
+    required this.day,
+    required this.hour,
     required this.name,
     required this.instructor,
     required this.classroom,
@@ -17,7 +26,8 @@ class Course {
 }
 
 class WeeklySchedulePage extends StatefulWidget {
-  const WeeklySchedulePage({super.key});
+  final User currentUser;
+  const WeeklySchedulePage({super.key, required this.currentUser});
 
   @override
   State<WeeklySchedulePage> createState() => _WeeklySchedulePageState();
@@ -29,80 +39,160 @@ class _WeeklySchedulePageState extends State<WeeklySchedulePage> {
 
   // Total number of weeks in a term
   final int _totalWeeks = 16;
+  Map<int, Map<String, Map<int, thisCourse>>> weeklySchedules = {};
 
-  final Map<String, int> dateToWeek = {
-    // هفته اول
-    '1402/1/1': 1,
-    '1402/1/2': 1,
-    '1402/1/3': 1,
-    '1402/1/4': 1,
-    '1402/1/5': 1,
-    '1402/1/6': 1,
-    '1402/1/7': 1,
+  @override
+  void initState() {
+    super.initState();
+    fetchWeeklyFromApi();
+  }
 
-    // هفته دوم
-    '1402/1/8': 2,
-    '1402/1/9': 2,
-    '1402/1/10': 2,
-    '1402/1/11': 2,
-    '1402/1/12': 2,
-    '1402/1/13': 2,
-    '1402/1/14': 2,
+  Future<void> fetchWeeklyFromApi() async {
+    try {
+      final Map<String, int> dateToWeek = {
+        // هفته اول
+        '1402/01/01': 1,
+        '1402/01/02': 1,
+        '1402/01/03': 1,
+        '1402/01/04': 1,
+        '1402/01/05': 1,
+        '1402/01/06': 1,
+        '1402/01/07': 1,
 
-    // هفته سوم
-    '1402/1/15': 3,
-    '1402/1/16': 3,
-    '1402/1/17': 3,
-    '1402/1/18': 3,
-    '1402/1/19': 3,
-    '1402/1/20': 3,
-    '1402/1/21': 3,
+        // هفته دوم
+        '1402/01/08': 2,
+        '1402/01/09': 2,
+        '1402/01/10': 2,
+        '1402/01/11': 2,
+        '1402/01/12': 2,
+        '1402/01/13': 2,
+        '1402/01/14': 2,
 
-    // هفته چهارم
-    '1402/1/22': 4,
-    '1402/1/23': 4,
-    '1402/1/24': 4,
-    '1402/1/25': 4,
-    '1402/1/26': 4,
-    '1402/1/27': 4,
-    '1402/1/28': 4,
+        // // هفته سوم
+        // '1402/1/15': 3,
+        // '1402/1/16': 3,
+        // '1402/1/17': 3,
+        // '1402/1/18': 3,
+        // '1402/1/19': 3,
+        // '1402/1/20': 3,
+        // '1402/1/21': 3,
 
-    // هفته پنجم
-    '1402/1/29': 5,
-    '1402/1/30': 5,
-    '1402/1/31': 5,
-    '1402/2/1': 5,
-    '1402/2/2': 5,
-    '1402/2/3': 5,
-    '1402/2/4': 5,
+        // // هفته چهارم
+        // '1402/1/22': 4,
+        // '1402/1/23': 4,
+        // '1402/1/24': 4,
+        // '1402/1/25': 4,
+        // '1402/1/26': 4,
+        // '1402/1/27': 4,
+        // '1402/1/28': 4,
 
-    // هفته ششم
-    '1402/2/5': 6,
-    '1402/2/6': 6,
-    '1402/2/7': 6,
-    '1402/2/8': 6,
-    '1402/2/9': 6,
-    '1402/2/10': 6,
-    '1402/2/11': 6,
+        // // هفته پنجم
+        // '1402/1/29': 5,
+        // '1402/1/30': 5,
+        // '1402/1/31': 5,
+        // '1402/2/1': 5,
+        // '1402/2/2': 5,
+        // '1402/2/3': 5,
+        // '1402/2/4': 5,
 
-    // هفته هفتم
-    '1402/2/12': 7,
-    '1402/2/13': 7,
-    '1402/2/14': 7,
-    '1402/2/15': 7,
-    '1402/2/16': 7,
-    '1402/2/17': 7,
-    '1402/2/18': 7,
+        // // هفته ششم
+        // '1402/2/5': 6,
+        // '1402/2/6': 6,
+        // '1402/2/7': 6,
+        // '1402/2/8': 6,
+        // '1402/2/9': 6,
+        // '1402/2/10': 6,
+        // '1402/2/11': 6,
 
-    // هفته هشتم
-    '1402/2/19': 8,
-    '1402/2/20': 8,
-    '1402/2/21': 8,
-    '1402/2/22': 8,
-    '1402/2/23': 8,
-    '1402/2/24': 8,
-    '1402/2/25': 8,
-  };
+        // // هفته هفتم
+        // '1402/2/12': 7,
+        // '1402/2/13': 7,
+        // '1402/2/14': 7,
+        // '1402/2/15': 7,
+        // '1402/2/16': 7,
+        // '1402/2/17': 7,
+        // '1402/2/18': 7,
+
+        // // هفته هشتم
+        // '1402/2/19': 8,
+        // '1402/2/20': 8,
+        // '1402/2/21': 8,
+        // '1402/2/22': 8,
+        // '1402/2/23': 8,
+        // '1402/2/24': 8,
+        // '1402/2/25': 8,
+      };
+      List<Course> course = await ApiService().fetchWeekly(
+        widget.currentUser.university,
+        widget.currentUser.major,
+        widget.currentUser.userName,
+      );
+
+      for (var c in course) {
+        int week = dateToWeek[c.date] ?? 1;
+        print('Date: ${c.date}, Day: ${c.day}, Hour: ${c.hour}');
+        print('Slot Index: ${getSlotIndex(c.hour)}');
+        int slot = getSlotIndex(c.hour);
+
+        if (slot == -1) continue;
+
+        weeklySchedules[week] ??= {};
+        weeklySchedules[week]![c.day] ??= {};
+
+        weeklySchedules[week]![c.day]![slot] = thisCourse(
+          name: c.courseName,
+          instructor: c.professorName,
+          classroom: c.classroom,
+          color: Colors.primaries[slot % Colors.primaries.length].shade100,
+          date: c.date,
+          day: c.day,
+          hour: c.hour,
+        );
+      }
+      setState(() {});
+    } catch (e) {}
+  }
+
+  final List<Map<String, String>> timeSlots = [
+    {'start': '8:00', 'end': '10:00'},
+    {'start': '10:00', 'end': '12:00'},
+    {'start': '14:00', 'end': '16:00'},
+    {'start': '16:00', 'end': '18:00'},
+    {'start': '18:00', 'end': '20:00'},
+  ];
+  // int getSlotIndex(String hour) {
+  //   for (int i = 0; i < timeSlots.length; i++) {
+  //     if (hour.trim() == timeSlots[i]['start']) {
+  //       return i;
+  //     }
+  //   }
+  //   return -1; // اگر هیچ اسلاتی پیدا نشد
+  // }
+
+  int getSlotIndex(String hour) {
+    TimeOfDay courseTime = _parseTime(hour);
+
+    for (int i = 0; i < timeSlots.length; i++) {
+      TimeOfDay start = _parseTime(timeSlots[i]['start']!);
+      TimeOfDay end = _parseTime(timeSlots[i]['end']!);
+
+      if (_isTimeInRange(courseTime, start, end)) {
+        return i;
+      }
+    }
+
+    return -1;
+  }
+
+  TimeOfDay _parseTime(String time) {
+    final parts = time.split(':');
+    return TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1]));
+  }
+
+  bool _isTimeInRange(TimeOfDay time, TimeOfDay start, TimeOfDay end) {
+    final total = (TimeOfDay t) => t.hour * 60 + t.minute;
+    return total(time) >= total(start) && total(time) < total(end);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -235,172 +325,12 @@ class _WeeklySchedulePageState extends State<WeeklySchedulePage> {
     final List<String> weekDays = [
       'شنبه',
       'یکشنبه',
-      'دوشنبه',
+      'دو شنبه',
       'سه شنبه',
-      'چهارشنبه',
+      'چهار شنبه',
       'پنجشنبه',
       'جمعه',
     ];
-
-    // Define sample courses for different weeks
-    final Map<int, Map<String, Map<int, Course>>> weeklySchedules = {
-      // Week 1
-      1: {
-        'شنبه': {
-          0: Course(
-            name: 'ساختمان داده',
-            instructor: 'دکتر صحافی زاده',
-            classroom: 'B7',
-            color: Colors.blue.shade100,
-          ),
-          2: Course(
-            name: 'پایگاه داده‌ها',
-            instructor: 'دکتر طلعتیان',
-            classroom: 'B6',
-            color: Colors.green.shade100,
-          ),
-        },
-        'یکشنبه': {
-          1: Course(
-            name: 'نظریه زبان‌ها و ماشین‌ها',
-            instructor: 'دکتر طلعتیان',
-            classroom: 'B7',
-            color: Colors.purple.shade100,
-          ),
-          3: Course(
-            name: 'هوش مصنوعی',
-            instructor: 'دکتر محمدی',
-            classroom: 'B8',
-            color: Colors.orange.shade100,
-          ),
-        },
-        'دوشنبه': {
-          0: Course(
-            name: 'مهندسی نرم‌افزار',
-            instructor: 'دکتر صحافی زاده',
-            classroom: 'B7',
-            color: Colors.red.shade100,
-          ),
-          4: Course(
-            name: 'داده‌کاوی',
-            instructor: 'دکتر رستمی',
-            classroom: 'B6',
-            color: Colors.teal.shade100,
-          ),
-        },
-        'سه شنبه': {
-          2: Course(
-            name: 'سیستم‌های عامل',
-            instructor: 'استاد روشن',
-            classroom: 'B5',
-            color: Colors.amber.shade100,
-          ),
-          3: Course(
-            name: 'معماری کامپیوتر',
-            instructor: 'استاد روشن',
-            classroom: 'B9',
-            color: Colors.indigo.shade100,
-          ),
-        },
-        'چهارشنبه': {
-          1: Course(
-            name: 'شبکه‌های کامپیوتری',
-            instructor: 'استاد خیاطی',
-            classroom: 'B8',
-            color: Colors.pink.shade100,
-          ),
-          4: Course(
-            name: 'مدارهای منطقی',
-            instructor: 'دکتر ترابی',
-            classroom: 'B1',
-            color: Colors.cyan.shade100,
-          ),
-        },
-      },
-
-      // Week 2
-      2: {
-        'شنبه': {
-          0: Course(
-            name: 'ساختمان داده',
-            instructor: 'دکتر صحافی زاده',
-            classroom: 'B7',
-            color: Colors.blue.shade100,
-          ),
-          3: Course(
-            name: 'هوش مصنوعی',
-            instructor: 'دکتر محمدی',
-            classroom: 'B8',
-            color: Colors.orange.shade100,
-          ),
-        },
-        'یکشنبه': {
-          1: Course(
-            name: 'نظریه زبان‌ها و ماشین‌ها',
-            instructor: 'دکتر طلعتیان',
-            classroom: 'B7',
-            color: Colors.purple.shade100,
-          ),
-          4: Course(
-            name: 'مدارهای منطقی',
-            instructor: 'دکتر ترابی',
-            classroom: 'B1',
-            color: Colors.cyan.shade100,
-          ),
-        },
-        'دوشنبه': {
-          2: Course(
-            name: 'پایگاه داده‌ها',
-            instructor: 'دکتر طلعتیان',
-            classroom: 'B6',
-            color: Colors.green.shade100,
-          ),
-          4: Course(
-            name: 'داده‌کاوی',
-            instructor: 'دکتر رستمی',
-            classroom: 'B6',
-            color: Colors.teal.shade100,
-          ),
-        },
-        'سه شنبه': {
-          0: Course(
-            name: 'مهندسی نرم‌افزار',
-            instructor: 'دکتر صحافی زاده',
-            classroom: 'B7',
-            color: Colors.red.shade100,
-          ),
-          3: Course(
-            name: 'معماری کامپیوتر',
-            instructor: 'استاد روشن',
-            classroom: 'B9',
-            color: Colors.indigo.shade100,
-          ),
-        },
-        'چهارشنبه': {
-          1: Course(
-            name: 'شبکه‌های کامپیوتری',
-            instructor: 'استاد خیاطی',
-            classroom: 'B8',
-            color: Colors.pink.shade100,
-          ),
-          2: Course(
-            name: 'سیستم‌های عامل',
-            instructor: 'استاد روشن',
-            classroom: 'B5',
-            color: Colors.amber.shade100,
-          ),
-        },
-      },
-    };
-
-    // For weeks 3-16, use the same schedule as week 1 or 2 alternately
-    for (int i = 3; i <= _totalWeeks; i++) {
-      weeklySchedules[i] = weeklySchedules[i % 2 == 1 ? 1 : 2]!;
-    }
-
-    // Get the schedule for the selected week
-    final courseSchedule =
-        weeklySchedules[_selectedWeek] ?? weeklySchedules[1]!;
 
     return Table(
       border: TableBorder.all(color: Colors.black, width: 1.5),
@@ -505,8 +435,11 @@ class _WeeklySchedulePageState extends State<WeeklySchedulePage> {
                   // Course cells for each time slot
                   ...List.generate(5, (index) {
                     // Check if there's a course scheduled for this day and time slot
-                    final courseForThisSlot = courseSchedule[day]?[index];
-
+                    final courseForThisSlot =
+                        weeklySchedules[_selectedWeek]?[day]?[index];
+                    print(
+                      'Schedule for week $_selectedWeek: ${weeklySchedules[_selectedWeek]}',
+                    );
                     return TableCell(
                       child: Container(
                         height: 100,

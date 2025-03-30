@@ -153,7 +153,9 @@ class SimpleDashboard extends StatelessWidget {
     if (pageName == 'برنامه هفتگی') {
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => const WeeklySchedulePage()),
+        MaterialPageRoute(
+          builder: (context) => WeeklySchedulePage(currentUser: user1),
+        ),
       );
     } else if (pageName == 'برنامه ترم') {
       Navigator.push(
