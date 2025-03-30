@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-// Define the primary theme color for the application
 const Color primaryColor = Color.fromARGB(255, 20, 165, 255);
 
 class Course {
@@ -59,12 +58,13 @@ class _WeeklySchedulePageState extends State<WeeklySchedulePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Week selector dropdown
+                            // Week selector dropdown
               _buildWeekSelector(),
               
               const SizedBox(height: 16),
               
               // Weekly schedule table with scrolling
+
               Expanded(
                 child: SingleChildScrollView(
                   scrollDirection: Axis.vertical,
@@ -74,6 +74,8 @@ class _WeeklySchedulePageState extends State<WeeklySchedulePage> {
                   ),
                 ),
               ),
+
+              SizedBox(height: 16),
 
               const SizedBox(height: 40),
             ],
@@ -154,9 +156,9 @@ class _WeeklySchedulePageState extends State<WeeklySchedulePage> {
     final List<Map<String, String>> timeSlots = [
       {'start': '8:00', 'end': '10:00'},
       {'start': '10:00', 'end': '12:00'},
-      {'start': '12:30', 'end': '14:00'},
       {'start': '14:00', 'end': '16:00'},
       {'start': '16:00', 'end': '18:00'},
+      {'start': '18:00', 'end': '20:00'},
     ];
 
     // Define days of the week in Persian
