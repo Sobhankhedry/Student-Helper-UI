@@ -194,6 +194,7 @@ class ScheduleEntry {
       courseGroup: course.group,
       courseName: course.courseName,
       classroom: course.classroom, // or use another field if needed
+      isOffered: course.status.trim() == 'فعال', // 👈 بررسی وضعیت
     );
   }
 }
@@ -237,9 +238,7 @@ class _SchedulePageState extends State<SchedulePage> {
     fetchScheduleFromApi();
     super.initState();
 
-
     allEntries = [];
-
 
     // Initialize filtered entries with all entries
     filteredEntries = List.from(allEntries);
@@ -279,6 +278,10 @@ class _SchedulePageState extends State<SchedulePage> {
         // Convert to ScheduleEntry list
         allEntries =
             courses.map((course) => ScheduleEntry.fromCourse(course)).toList();
+        allEntries.sort((a, b) {
+          if (a.isOffered == b.isOffered) return 0;
+          return a.isOffered ? -1 : 1;
+        });
         filteredEntries = List.from(allEntries);
       });
       ScaffoldMessenger.of(
@@ -527,39 +530,47 @@ class _SchedulePageState extends State<SchedulePage> {
    */
   void applyFilters() {
     setState(() {
-      filteredEntries = allEntries.where((entry) {
-        // Date range filter
-        bool matchesDateRange = true;
-        if (startDate != null && endDate != null) {
-          bool isAfterOrEqualStart = entry.jalaliDate.compareTo(startDate!) >= 0;
-          bool isBeforeOrEqualEnd = entry.jalaliDate.compareTo(endDate!) <= 0;
-          matchesDateRange = isAfterOrEqualStart && isBeforeOrEqualEnd;
-        }
+      filteredEntries =
+          allEntries.where((entry) {
+            bool matchesDateRange = true;
+            if (startDate != null && endDate != null) {
+              bool isAfterOrEqualStart =
+                  entry.jalaliDate.compareTo(startDate!) >= 0;
+              bool isBeforeOrEqualEnd =
+                  entry.jalaliDate.compareTo(endDate!) <= 0;
+              matchesDateRange = isAfterOrEqualStart && isBeforeOrEqualEnd;
+            }
 
-        // Day filter
-        bool matchesDay = selectedDay == null || entry.day == selectedDay;
-        
-        // Time filter
-        bool matchesTime = selectedTime == null || entry.time == selectedTime;
-        
-        // Course status filter
-        bool matchesCourseStatus = true;
-        if (selectedCourseStatus != null) {
-          if (selectedCourseStatus == 'offered') {
-            matchesCourseStatus = entry.isOffered;
-          } else if (selectedCourseStatus == 'notOffered') {
-            matchesCourseStatus = !entry.isOffered;
-          }
-        }
-        
-        // Search query filter
-        bool matchesSearch = searchQuery.isEmpty ||
-            entry.courseName.contains(searchQuery) ||
-            entry.courseCode.contains(searchQuery);
+            bool matchesDay = selectedDay == null || entry.day == selectedDay;
+            bool matchesTime =
+                selectedTime == null || entry.time == selectedTime;
 
-        // Entry must match all applied filters
-        return matchesDateRange && matchesDay && matchesTime && matchesCourseStatus && matchesSearch;
-      }).toList();  
+            bool matchesCourseStatus = true;
+            if (selectedCourseStatus != null) {
+              if (selectedCourseStatus == 'offered') {
+                matchesCourseStatus = entry.isOffered;
+              } else if (selectedCourseStatus == 'notOffered') {
+                matchesCourseStatus = !entry.isOffered;
+              }
+            }
+
+            bool matchesSearch =
+                searchQuery.isEmpty ||
+                entry.courseName.contains(searchQuery) ||
+                entry.courseCode.contains(searchQuery);
+
+            return matchesDateRange &&
+                matchesDay &&
+                matchesTime &&
+                matchesCourseStatus &&
+                matchesSearch;
+          }).toList();
+
+      // مرتب‌سازی: اول دروس ارائه شده، بعد ارائه نشده
+      filteredEntries.sort((a, b) {
+        if (a.isOffered == b.isOffered) return 0;
+        return a.isOffered ? -1 : 1;
+      });
     });
   }
 
@@ -1014,7 +1025,7 @@ class _SchedulePageState extends State<SchedulePage> {
                       ],
                     ),
                     const SizedBox(height: 12),
-  
+
                     // Course status filter
                     Container(
                       height: 40,
@@ -1022,9 +1033,10 @@ class _SchedulePageState extends State<SchedulePage> {
                         color: Colors.grey[800],
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
-                          color: selectedCourseStatus != null 
-                              ? primaryColor 
-                              : Colors.grey[700]!,
+                          color:
+                              selectedCourseStatus != null
+                                  ? primaryColor
+                                  : Colors.grey[700]!,
                           width: 1,
                         ),
                       ),
@@ -1034,16 +1046,18 @@ class _SchedulePageState extends State<SchedulePage> {
                           Container(
                             padding: const EdgeInsets.all(4),
                             decoration: BoxDecoration(
-                              color: selectedCourseStatus != null 
-                                  ? primaryColor.withOpacity(0.2) 
-                                  : Colors.grey.withOpacity(0.2),
+                              color:
+                                  selectedCourseStatus != null
+                                      ? primaryColor.withOpacity(0.2)
+                                      : Colors.grey.withOpacity(0.2),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Icon(
                               Icons.book,
-                              color: selectedCourseStatus != null 
-                                  ? primaryColor 
-                                  : Colors.grey,
+                              color:
+                                  selectedCourseStatus != null
+                                      ? primaryColor
+                                      : Colors.grey,
                               size: 16,
                             ),
                           ),
@@ -1061,7 +1075,11 @@ class _SchedulePageState extends State<SchedulePage> {
                                     fontFamily: 'Vazir',
                                   ),
                                 ),
-                                icon: const Icon(Icons.arrow_drop_down, color: Colors.grey, size: 20),
+                                icon: const Icon(
+                                  Icons.arrow_drop_down,
+                                  color: Colors.grey,
+                                  size: 20,
+                                ),
                                 dropdownColor: Colors.grey[800],
                                 style: const TextStyle(
                                   color: Colors.white,
@@ -1079,14 +1097,18 @@ class _SchedulePageState extends State<SchedulePage> {
                                     value: 'offered',
                                     child: Text(
                                       'دروس ارائه شده',
-                                      style: const TextStyle(fontFamily: 'Vazir'),
+                                      style: const TextStyle(
+                                        fontFamily: 'Vazir',
+                                      ),
                                     ),
                                   ),
                                   DropdownMenuItem<String>(
                                     value: 'notOffered',
                                     child: Text(
                                       'دروس ارائه نشده',
-                                      style: const TextStyle(fontFamily: 'Vazir'),
+                                      style: const TextStyle(
+                                        fontFamily: 'Vazir',
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -1119,7 +1141,7 @@ class _SchedulePageState extends State<SchedulePage> {
                             width: 1.5,
                           ),
                           defaultColumnWidth: const FixedColumnWidth(120),
-                          columnWidths: const {   
+                          columnWidths: const {
                             0: FixedColumnWidth(180), // Course Name
                             1: FixedColumnWidth(100), // Day
                             2: FixedColumnWidth(120), // Date
@@ -1322,7 +1344,7 @@ class _SchedulePageState extends State<SchedulePage> {
             child: Center(
               child: Text(
                 entry.isOffered ? entry.day : '',
-               
+
                 style: const TextStyle(
                   color: Colors.black,
                   fontFamily: 'Vazir',
@@ -1337,7 +1359,6 @@ class _SchedulePageState extends State<SchedulePage> {
             padding: const EdgeInsets.all(8.0),
             child: Center(
               child: Text(
-                
                 entry.isOffered ? formattedDate : '',
 
                 style: const TextStyle(
@@ -1354,7 +1375,6 @@ class _SchedulePageState extends State<SchedulePage> {
             padding: const EdgeInsets.all(8.0),
             child: Center(
               child: Text(
-                
                 entry.isOffered ? entry.time : '',
                 style: const TextStyle(
                   color: Colors.black,
@@ -1417,13 +1437,19 @@ class _SchedulePageState extends State<SchedulePage> {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: entry.isOffered ? Colors.green.shade100 : Colors.red.shade100,
+                  color:
+                      entry.isOffered
+                          ? Colors.green.shade100
+                          : Colors.red.shade100,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
                   entry.isOffered ? 'ارائه شده' : 'ارائه نشده',
                   style: TextStyle(
-                    color: entry.isOffered ? Colors.green.shade800 : Colors.red.shade800,
+                    color:
+                        entry.isOffered
+                            ? Colors.green.shade800
+                            : Colors.red.shade800,
                     fontFamily: 'Vazir',
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
@@ -1459,4 +1485,3 @@ class _SchedulePageState extends State<SchedulePage> {
     );
   }
 }
-
