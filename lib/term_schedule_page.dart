@@ -151,6 +151,7 @@ class ScheduleEntry {
   final String courseGroup;
   final String courseName;
   final String classroom;
+  final bool isOffered;
 
   ScheduleEntry({
     required this.day,
@@ -160,6 +161,7 @@ class ScheduleEntry {
     required this.courseGroup,
     required this.courseName,
     required this.classroom,
+    this.isOffered = true,
   }) : jalaliDate = _parseDate(date);
 
   /**
@@ -216,6 +218,7 @@ class _SchedulePageState extends State<SchedulePage> {
   JalaliDate? endDate;
   String? selectedDay;
   String? selectedTime;
+  String? selectedCourseStatus;
   String searchQuery = '';
 
   // Text controller for search field
@@ -234,8 +237,9 @@ class _SchedulePageState extends State<SchedulePage> {
     fetchScheduleFromApi();
     super.initState();
 
-    // Initialize sample data for the schedule
+
     allEntries = [];
+
 
     // Initialize filtered entries with all entries
     filteredEntries = List.from(allEntries);
@@ -523,37 +527,39 @@ class _SchedulePageState extends State<SchedulePage> {
    */
   void applyFilters() {
     setState(() {
-      filteredEntries =
-          allEntries.where((entry) {
-            // Date range filter
-            bool matchesDateRange = true;
-            if (startDate != null && endDate != null) {
-              bool isAfterOrEqualStart =
-                  entry.jalaliDate.compareTo(startDate!) >= 0;
-              bool isBeforeOrEqualEnd =
-                  entry.jalaliDate.compareTo(endDate!) <= 0;
-              matchesDateRange = isAfterOrEqualStart && isBeforeOrEqualEnd;
-            }
+      filteredEntries = allEntries.where((entry) {
+        // Date range filter
+        bool matchesDateRange = true;
+        if (startDate != null && endDate != null) {
+          bool isAfterOrEqualStart = entry.jalaliDate.compareTo(startDate!) >= 0;
+          bool isBeforeOrEqualEnd = entry.jalaliDate.compareTo(endDate!) <= 0;
+          matchesDateRange = isAfterOrEqualStart && isBeforeOrEqualEnd;
+        }
 
-            // Day filter
-            bool matchesDay = selectedDay == null || entry.day == selectedDay;
+        // Day filter
+        bool matchesDay = selectedDay == null || entry.day == selectedDay;
+        
+        // Time filter
+        bool matchesTime = selectedTime == null || entry.time == selectedTime;
+        
+        // Course status filter
+        bool matchesCourseStatus = true;
+        if (selectedCourseStatus != null) {
+          if (selectedCourseStatus == 'offered') {
+            matchesCourseStatus = entry.isOffered;
+          } else if (selectedCourseStatus == 'notOffered') {
+            matchesCourseStatus = !entry.isOffered;
+          }
+        }
+        
+        // Search query filter
+        bool matchesSearch = searchQuery.isEmpty ||
+            entry.courseName.contains(searchQuery) ||
+            entry.courseCode.contains(searchQuery);
 
-            // Time filter
-            bool matchesTime =
-                selectedTime == null || entry.time == selectedTime;
-
-            // Search query filter
-            bool matchesSearch =
-                searchQuery.isEmpty ||
-                entry.courseName.contains(searchQuery) ||
-                entry.courseCode.contains(searchQuery);
-
-            // Entry must match all applied filters
-            return matchesDateRange &&
-                matchesDay &&
-                matchesTime &&
-                matchesSearch;
-          }).toList();
+        // Entry must match all applied filters
+        return matchesDateRange && matchesDay && matchesTime && matchesCourseStatus && matchesSearch;
+      }).toList();  
     });
   }
 
@@ -568,6 +574,7 @@ class _SchedulePageState extends State<SchedulePage> {
       endDate = null;
       selectedDay = null;
       selectedTime = null;
+      selectedCourseStatus = null;
       searchQuery = '';
       _searchController.clear();
       filteredEntries = List.from(allEntries);
@@ -1006,6 +1013,89 @@ class _SchedulePageState extends State<SchedulePage> {
                         ),
                       ],
                     ),
+                    const SizedBox(height: 12),
+  
+                    // Course status filter
+                    Container(
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[800],
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: selectedCourseStatus != null 
+                              ? primaryColor 
+                              : Colors.grey[700]!,
+                          width: 1,
+                        ),
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              color: selectedCourseStatus != null 
+                                  ? primaryColor.withOpacity(0.2) 
+                                  : Colors.grey.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Icon(
+                              Icons.book,
+                              color: selectedCourseStatus != null 
+                                  ? primaryColor 
+                                  : Colors.grey,
+                              size: 16,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: DropdownButtonHideUnderline(
+                              child: DropdownButton<String>(
+                                isExpanded: true,
+                                value: selectedCourseStatus,
+                                hint: const Text(
+                                  'وضعیت ارائه دروس',
+                                  style: TextStyle(
+                                    color: Colors.grey,
+                                    fontSize: 12,
+                                    fontFamily: 'Vazir',
+                                  ),
+                                ),
+                                icon: const Icon(Icons.arrow_drop_down, color: Colors.grey, size: 20),
+                                dropdownColor: Colors.grey[800],
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontFamily: 'Vazir',
+                                ),
+                                onChanged: (value) {
+                                  setState(() {
+                                    selectedCourseStatus = value;
+                                    applyFilters();
+                                  });
+                                },
+                                items: [
+                                  DropdownMenuItem<String>(
+                                    value: 'offered',
+                                    child: Text(
+                                      'دروس ارائه شده',
+                                      style: const TextStyle(fontFamily: 'Vazir'),
+                                    ),
+                                  ),
+                                  DropdownMenuItem<String>(
+                                    value: 'notOffered',
+                                    child: Text(
+                                      'دروس ارائه نشده',
+                                      style: const TextStyle(fontFamily: 'Vazir'),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -1029,7 +1119,7 @@ class _SchedulePageState extends State<SchedulePage> {
                             width: 1.5,
                           ),
                           defaultColumnWidth: const FixedColumnWidth(120),
-                          columnWidths: const {
+                          columnWidths: const {   
                             0: FixedColumnWidth(180), // Course Name
                             1: FixedColumnWidth(100), // Day
                             2: FixedColumnWidth(120), // Date
@@ -1037,12 +1127,14 @@ class _SchedulePageState extends State<SchedulePage> {
                             4: FixedColumnWidth(100), // Classroom
                             5: FixedColumnWidth(100), // Course Group
                             6: FixedColumnWidth(100), // Course Code
+                            7: FixedColumnWidth(100), // Offering Status
                           },
                           children: [
                             // Header row
                             TableRow(
                               decoration: BoxDecoration(color: primaryColor),
                               children: const [
+                                // Course Name (now first)
                                 TableCell(
                                   child: Padding(
                                     padding: EdgeInsets.all(8.0),
@@ -1149,6 +1241,21 @@ class _SchedulePageState extends State<SchedulePage> {
                                     ),
                                   ),
                                 ),
+                                TableCell(
+                                  child: Padding(
+                                    padding: EdgeInsets.all(8.0),
+                                    child: Center(
+                                      child: Text(
+                                        'وضعیت ارائه',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                          fontFamily: 'Vazir',
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
                               ],
                             ),
                             // Data rows
@@ -1191,6 +1298,7 @@ class _SchedulePageState extends State<SchedulePage> {
     return TableRow(
       decoration: const BoxDecoration(color: Colors.white),
       children: [
+        // Course Name - Always show this (now first)
         TableCell(
           child: Padding(
             padding: const EdgeInsets.all(8.0),
@@ -1201,17 +1309,36 @@ class _SchedulePageState extends State<SchedulePage> {
                 style: const TextStyle(
                   color: Colors.black,
                   fontFamily: 'Vazir',
+                  fontWeight: FontWeight.bold,
                 ),
               ),
             ),
           ),
         ),
+        // Day
         TableCell(
           child: Padding(
             padding: const EdgeInsets.all(8.0),
             child: Center(
               child: Text(
-                entry.day,
+                entry.isOffered ? entry.day : '',
+               
+                style: const TextStyle(
+                  color: Colors.black,
+                  fontFamily: 'Vazir',
+                ),
+              ),
+            ),
+          ),
+        ),
+        // Date
+        TableCell(
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Center(
+              child: Text(
+                
+                entry.isOffered ? formattedDate : '',
 
                 style: const TextStyle(
                   color: Colors.black,
@@ -1221,13 +1348,14 @@ class _SchedulePageState extends State<SchedulePage> {
             ),
           ),
         ),
+        // Time
         TableCell(
           child: Padding(
             padding: const EdgeInsets.all(8.0),
             child: Center(
               child: Text(
-                formattedDate,
-
+                
+                entry.isOffered ? entry.time : '',
                 style: const TextStyle(
                   color: Colors.black,
                   fontFamily: 'Vazir',
@@ -1236,12 +1364,13 @@ class _SchedulePageState extends State<SchedulePage> {
             ),
           ),
         ),
+        // Classroom
         TableCell(
           child: Padding(
             padding: const EdgeInsets.all(8.0),
             child: Center(
               child: Text(
-                entry.time,
+                entry.isOffered ? entry.classroom : '',
                 style: const TextStyle(
                   color: Colors.black,
                   fontFamily: 'Vazir',
@@ -1250,12 +1379,13 @@ class _SchedulePageState extends State<SchedulePage> {
             ),
           ),
         ),
+        // Course Group
         TableCell(
           child: Padding(
             padding: const EdgeInsets.all(8.0),
             child: Center(
               child: Text(
-                entry.classroom,
+                entry.isOffered ? entry.courseGroup : '',
                 style: const TextStyle(
                   color: Colors.black,
                   fontFamily: 'Vazir',
@@ -1264,12 +1394,13 @@ class _SchedulePageState extends State<SchedulePage> {
             ),
           ),
         ),
+        // Course Code
         TableCell(
           child: Padding(
             padding: const EdgeInsets.all(8.0),
             child: Center(
               child: Text(
-                entry.courseGroup,
+                entry.isOffered ? entry.courseCode : '',
                 style: const TextStyle(
                   color: Colors.black,
                   fontFamily: 'Vazir',
@@ -1278,15 +1409,25 @@ class _SchedulePageState extends State<SchedulePage> {
             ),
           ),
         ),
+        // Offering Status
         TableCell(
           child: Padding(
             padding: const EdgeInsets.all(8.0),
             child: Center(
-              child: Text(
-                entry.courseCode,
-                style: const TextStyle(
-                  color: Colors.black,
-                  fontFamily: 'Vazir',
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: entry.isOffered ? Colors.green.shade100 : Colors.red.shade100,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  entry.isOffered ? 'ارائه شده' : 'ارائه نشده',
+                  style: TextStyle(
+                    color: entry.isOffered ? Colors.green.shade800 : Colors.red.shade800,
+                    fontFamily: 'Vazir',
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ),
@@ -1305,7 +1446,7 @@ class _SchedulePageState extends State<SchedulePage> {
     return TableRow(
       decoration: const BoxDecoration(color: Colors.white),
       children: List.generate(
-        7,
+        8, // Updated to include the new column
         (index) => const TableCell(
           child: SizedBox(
             height: 40,
@@ -1318,3 +1459,4 @@ class _SchedulePageState extends State<SchedulePage> {
     );
   }
 }
+
