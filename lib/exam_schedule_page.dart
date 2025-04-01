@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_2/models/User.dart';
+import 'package:flutter_application_2/services/api_services.dart';
 
 /**
  * Exam Class
@@ -10,126 +12,102 @@ class Exam {
   final String courseName;
   final String instructor;
   final String classroom;
-  final String duration; // Duration in minutes
   final Color color;
 
   Exam({
     required this.courseName,
     required this.instructor,
     required this.classroom,
-    required this.duration,
     required this.color,
   });
 }
 
 class ExamSchedulePage extends StatefulWidget {
-  const ExamSchedulePage({super.key});
+  const ExamSchedulePage({super.key, required this.currentUser});
+  final User currentUser;
 
   @override
   State<ExamSchedulePage> createState() => _ExamSchedulePageState();
 }
 
 class _ExamSchedulePageState extends State<ExamSchedulePage> {
-  // Sample exam data
-  late Map<String, Map<int, Exam>> examSchedule;
+  Map<String, Map<int, Exam>> examSchedules = {};
+  final List<Map<String, String>> timeSlots = [
+    {'start': '8:00', 'end': '10:00'},
+    {'start': '10:00', 'end': '12:00'},
+    {'start': '12:30', 'end': '14:00'},
+    {'start': '14:00', 'end': '16:00'},
+    {'start': '16:00', 'end': '18:00'},
+  ];
+
+  int getSlotIndex(String hour) {
+    for (int i = 0; i < timeSlots.length; i++) {
+      if (hour.trim() == timeSlots[i]['start']) {
+        return i;
+      }
+    }
+    return -1; // اگر تطابقی پیدا نشد
+  }
 
   @override
   void initState() {
+    fetchExamFromApi();
     super.initState();
-    
-    // Initialize exam schedule data
-    examSchedule = {
-      '1402/10/27': { 
-        0: Exam(
-          courseName: 'ساختمان داده',
-          instructor: 'دکتر صحافی زاده',
-          classroom: 'A1',
-          duration: '120',
-          color: Colors.blue.shade100,
-        ),
-      },
-      '1402/10/28': { 
-        1: Exam(
-          courseName: 'نظریه زبان‌ها و ماشین‌ها',
-          instructor: 'دکتر طلعتیان',
-          classroom: 'A1',
-          duration: '150',
-          color: Colors.purple.shade100,
-        ),
-      },
-      '1402/10/29': { 
-        3: Exam(
-          courseName: 'مهندسی نرم‌افزار',
-          instructor: 'دکتر صحافی زاده',
-          classroom: 'A2',
-          duration: '120',
-          color: Colors.red.shade100,
-        ),
-      },
-      '1402/10/30': { 
-        2: Exam(
-          courseName: 'پایگاه داده‌ها',
-          instructor: 'دکتر طلعتیان',
-          classroom: 'A1',
-          duration: '150',
-          color: Colors.green.shade100,
-        ),
-      },
-      '1402/11/1': { 
-        4: Exam(
-          courseName: 'سیستم‌های عامل',
-          instructor: 'استاد روشن',
-          classroom: 'B7',
-          duration: '120',
-          color: Colors.amber.shade100,
-        ),
-      },
-      '1402/11/5': {
-        0: Exam(
-          courseName: 'شبکه‌های کامپیوتری',
-          instructor: 'استاد خیاطی',
-          classroom: 'B8',
-          duration: '150',
-          color: Colors.pink.shade100,
-        ),
-      },
-      '1402/11/6': { 
-        2: Exam(
-          courseName: 'معماری کامپیوتر',
-          instructor: 'استاد روشن',
-          classroom: 'B7',
-          duration: '120',
-          color: Colors.indigo.shade100,
-        ),
-      },
-      '1402/11/7': { 
-        1: Exam(
-          courseName: 'مدارهای منطقی',
-          instructor: 'دکتر ترابی',
-          classroom: 'A1',
-          duration: '120',
-          color: Colors.cyan.shade100,
-        ),
-      },
-      '1402/11/8': { 
-        3: Exam(
-          courseName: 'داده‌کاوی',
-          instructor: 'دکتر رستمی',
-          classroom: 'A2',
-          duration: '150',
-          color: Colors.teal.shade100,
-        ),
-      },
-      '1402/11/9': { 
-        4: Exam(
-          courseName: 'هوش مصنوعی',
-          instructor: 'دکتر محمدی',
-          classroom: 'A1',
-          duration: '120',
-          color: Colors.orange.shade100,
-        ),
-      },
-    };
+  }
+  // Initialize exam schedule data
+
+  Future<void> fetchExamFromApi() async {
+    try {
+      final courses = await ApiService().fetchExam(
+        widget.currentUser.university,
+        widget.currentUser.major,
+        widget.currentUser.userName,
+      );
+
+      // تاریخ‌های هفته اول و دوم
+      final List<String> week1Dates = [
+        '1402/10/27',
+        '1402/10/28',
+        '1402/10/29',
+        '1402/10/30',
+        '1402/11/1',
+        '1402/11/2',
+        '1402/11/3',
+      ];
+      final List<String> week2Dates = [
+        '1402/11/4',
+        '1402/11/5',
+        '1402/11/6',
+        '1402/11/7',
+        '1402/11/8',
+        '1402/11/9',
+        '1402/11/10',
+      ];
+
+      Map<String, Map<int, Exam>> schedule = {};
+
+      for (var course in courses) {
+        final date = course.finalExam.trim();
+        int slot = getSlotIndex(course.hour);
+
+        if (slot != -1 &&
+            (week1Dates.contains(date) || week2Dates.contains(date))) {
+          schedule[date] ??= {};
+          schedule[date]![slot] = Exam(
+            courseName: course.courseName,
+            instructor: course.professorName,
+            classroom: course.classroom,
+            color: Colors.primaries[slot % Colors.primaries.length].shade100,
+          );
+        }
+      }
+
+      setState(() {
+        examSchedules = schedule;
+      });
+    } catch (e) {
+      print('Error loading exams: $e');
+    }
   }
 
   @override
@@ -182,83 +160,67 @@ class _ExamSchedulePageState extends State<ExamSchedulePage> {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildExamCell(String date, int timeSlot) {
+    final examForThisSlot = examSchedules[date]?[timeSlot];
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      color: Colors.black,
-      child: Column(
-        children: [
-          Row(
-            children: [
-              const Spacer(),
-              // Original search box without border
-              Container(
-                width: 200,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 60,
-                      height: 36,
-                      decoration: BoxDecoration(
-                        color: Colors.blue,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: const Center(
-                        child: Text(
-                          'تایید',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontFamily: 'Vazir',
-                          ),
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 8),
-                        child: TextField(
-                          textAlign: TextAlign.right,
-                          decoration: InputDecoration(
-                            hintText: 'جستجو',
-                            border: OutlineInputBorder(
-                              borderSide: BorderSide(color: Colors.white),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderSide: BorderSide(color: Colors.white),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderSide: BorderSide(color: Colors.white),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            contentPadding: EdgeInsets.zero,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ],
+      width: 150,
+      height: 80,
+      decoration: BoxDecoration(
+        color: examForThisSlot?.color ?? Colors.white,
+        border: Border.all(color: Colors.grey.shade300),
       ),
+      padding: const EdgeInsets.all(4),
+      child:
+          examForThisSlot != null
+              ? Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    examForThisSlot.courseName,
+                    style: const TextStyle(
+                      fontFamily: 'Vazir',
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    examForThisSlot.instructor,
+                    style: const TextStyle(fontFamily: 'Vazir', fontSize: 10),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 2),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.7),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          'کلاس ${examForThisSlot.classroom}',
+                          style: const TextStyle(
+                            fontFamily: 'Vazir',
+                            fontSize: 9,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              )
+              : const SizedBox(),
     );
   }
 
-  /**
-   * Builds a schedule table for a week
-   * 
-   * @param firstWeek Boolean flag indicating if this is the first week
-   * @return A widget containing the schedule table
-   */
   Widget _buildScheduleTable({required bool firstWeek}) {
     final List<String> days =
         firstWeek
@@ -452,102 +414,97 @@ class _ExamSchedulePageState extends State<ExamSchedulePage> {
         ),
 
         // Time slots for this day (with exams if scheduled)
-        for (int i = 0; i < 5; i++)
-          _buildExamCell(date, i),
+        for (int i = 0; i < 5; i++) _buildExamCell(date, i),
       ],
     );
   }
+}
 
-  /**
+Widget _buildHeader() {
+  return Container(
+    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+    color: Colors.black,
+    child: Column(
+      children: [
+        Row(
+          children: [
+            const Spacer(),
+            // Original search box without border
+            Container(
+              width: 200,
+              height: 36,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 60,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: Colors.blue,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: const Center(
+                      child: Text(
+                        'تایید',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontFamily: 'Vazir',
+                        ),
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 8),
+                      child: TextField(
+                        textAlign: TextAlign.right,
+                        decoration: InputDecoration(
+                          hintText: 'جستجو',
+                          border: OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.white),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.white),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.white),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ],
+    ),
+  );
+}
+
+/**
+   * Builds a schedule table for a week
+   * 
+   * @param firstWeek Boolean flag indicating if this is the first week
+   * @return A widget containing the schedule table
+   */
+
+/**
    * Builds an exam cell for a specific date and time slot
    * 
    * @param date The date string
    * @param timeSlot The time slot index (0-4)
    * @return A widget containing the exam cell
    */
-  Widget _buildExamCell(String date, int timeSlot) {
-    // Check if there's an exam scheduled for this date and time slot
-    final examForThisSlot = examSchedule[date]?[timeSlot];
-    
-    return Container(
-      width: 150,
-      height: 80,
-      decoration: BoxDecoration(
-        color: examForThisSlot?.color ?? Colors.white,
-        border: Border.all(color: Colors.grey.shade300),
-      ),
-      padding: const EdgeInsets.all(4),
-      child: examForThisSlot != null
-          ? Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  examForThisSlot.courseName,
-                  style: const TextStyle(
-                    fontFamily: 'Vazir',
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  examForThisSlot.instructor,
-                  style: const TextStyle(
-                    fontFamily: 'Vazir',
-                    fontSize: 10,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 2),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.7),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Text(
-                        'کلاس ${examForThisSlot.classroom}',
-                        style: const TextStyle(
-                          fontFamily: 'Vazir',
-                          fontSize: 9,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.7),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Text(
-                        '${examForThisSlot.duration} دقیقه',
-                        style: const TextStyle(
-                          fontFamily: 'Vazir',
-                          fontSize: 9,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            )
-          : const SizedBox(),
-    );
-  }
-}
 
 /**
  * DiagonalLinePainter

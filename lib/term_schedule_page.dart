@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_2/models/Course.dart';
+import 'package:flutter_application_2/models/User.dart';
+import 'package:flutter_application_2/services/api_services.dart';
 
 // Define the primary theme color for the application
 const Color primaryColor = Color.fromARGB(255, 37, 37, 213);
@@ -35,7 +38,7 @@ class JalaliDate {
     int jalaliYear = dateTime.year - 621;
     int jalaliMonth = dateTime.month;
     int jalaliDay = dateTime.day;
-    
+
     // Adjust for Farvardin which corresponds to March
     if (dateTime.month < 3 || (dateTime.month == 3 && dateTime.day < 21)) {
       jalaliYear--;
@@ -43,19 +46,19 @@ class JalaliDate {
     } else {
       jalaliMonth = dateTime.month - 3;
     }
-    
+
     // Adjust day of month (approximate)
     if (dateTime.month == 3 && dateTime.day > 20) {
       jalaliDay = dateTime.day - 20;
     } else if (dateTime.month > 3) {
       jalaliDay = dateTime.day;
     }
-    
+
     // Fix month (Jalali months are from 1 to 12)
     if (jalaliMonth <= 0) {
       jalaliMonth += 12;
     }
-    
+
     return JalaliDate(jalaliYear, jalaliMonth, jalaliDay);
   }
 
@@ -74,7 +77,7 @@ class JalaliDate {
     }
     return day.compareTo(other.day);
   }
-  
+
   /**
    * Gets the Persian name of a month
    * 
@@ -83,16 +86,26 @@ class JalaliDate {
    */
   static String getMonthName(int month) {
     final List<String> monthNames = [
-      'فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور',
-      'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند'
+      'فروردین',
+      'اردیبهشت',
+      'خرداد',
+      'تیر',
+      'مرداد',
+      'شهریور',
+      'مهر',
+      'آبان',
+      'آذر',
+      'دی',
+      'بهمن',
+      'اسفند',
     ];
-    
+
     if (month >= 1 && month <= 12) {
       return monthNames[month - 1];
     }
     return '';
   }
-  
+
   /**
    * Formats the date as a human-readable string
    * 
@@ -101,7 +114,7 @@ class JalaliDate {
   String toFormattedString() {
     return '$day ${getMonthName(month)} $year';
   }
-  
+
   /**
    * Converts a JalaliDate to Gregorian DateTime (approximate)
    * 
@@ -113,12 +126,12 @@ class JalaliDate {
     int gregorianYear = year + 621;
     int gregorianMonth = month + 3;
     int gregorianDay = day;
-    
+
     if (gregorianMonth > 12) {
       gregorianYear++;
       gregorianMonth -= 12;
     }
-    
+
     return DateTime(gregorianYear, gregorianMonth, gregorianDay);
   }
 }
@@ -171,6 +184,18 @@ class ScheduleEntry {
     }
     return JalaliDate(1402, 1, 1); // Default date if parsing fails
   }
+
+  factory ScheduleEntry.fromCourse(Course course) {
+    return ScheduleEntry(
+      day: course.day,
+      date: course.date,
+      time: course.hour,
+      courseCode: course.courseCode,
+      courseGroup: course.group,
+      courseName: course.courseName,
+      classroom: course.classroom, // or use another field if needed
+    );
+  }
 }
 
 /**
@@ -180,7 +205,8 @@ class ScheduleEntry {
  * Provides a comprehensive UI for viewing and filtering course schedules.
  */
 class SchedulePage extends StatefulWidget {
-  const SchedulePage({Key? key}) : super(key: key);
+  final User user;
+  const SchedulePage({Key? key, required this.user}) : super(key: key);
 
   @override
   State<SchedulePage> createState() => _SchedulePageState();
@@ -208,81 +234,12 @@ class _SchedulePageState extends State<SchedulePage> {
 
   @override
   void initState() {
+    fetchScheduleFromApi();
     super.initState();
 
-    // Initialize sample data for the schedule
-    allEntries = [
-      ScheduleEntry(
-        day: 'شنبه',
-        date: '1402/07/01',
-        time: '08:00-10:00',
-        courseCode: '1234',
-        courseGroup: '01',
-        courseName: 'ریاضی 1',
-        classroom: '101',
-        isOffered: true,
-      ),
-      ScheduleEntry(
-        day: 'یکشنبه',
-        date: '1402/07/02',
-        time: '10:00-12:00',
-        courseCode: '2345',
-        courseGroup: '02',
-        courseName: 'فیزیک 1',
-        classroom: '102',
-        isOffered: true,
-      ),
-      ScheduleEntry(
-        day: 'دوشنبه',
-        date: '1402/07/03',
-        time: '13:00-15:00',
-        courseCode: '3456',
-        courseGroup: '01',
-        courseName: 'برنامه نویسی',
-        classroom: '103',
-        isOffered: true,
-      ),
-      ScheduleEntry(
-        day: 'سه شنبه',
-        date: '1402/07/04',
-        time: '15:00-17:00',
-        courseCode: '4567',
-        courseGroup: '03',
-        courseName: 'مدار منطقی',
-        classroom: '104',
-        isOffered: false,
-      ),
-      ScheduleEntry(
-        day: 'چهارشنبه',
-        date: '1402/07/05',
-        time: '08:00-10:00',
-        courseCode: '5678',
-        courseGroup: '02',
-        courseName: 'ساختمان داده',
-        classroom: '105',
-        isOffered: true,
-      ),
-      ScheduleEntry(
-        day: 'شنبه',
-        date: '1402/07/08',
-        time: '10:00-12:00',
-        courseCode: '6789',
-        courseGroup: '01',
-        courseName: 'سیستم عامل',
-        classroom: '106',
-        isOffered: false,
-      ),
-      ScheduleEntry(
-        day: 'یکشنبه',
-        date: '1402/07/09',
-        time: '13:00-15:00',
-        courseCode: '7890',
-        courseGroup: '02',
-        courseName: 'پایگاه داده',
-        classroom: '107',
-        isOffered: true,
-      ),
-    ];
+
+    allEntries = [];
+
 
     // Initialize filtered entries with all entries
     filteredEntries = List.from(allEntries);
@@ -295,9 +252,49 @@ class _SchedulePageState extends State<SchedulePage> {
       'سه شنبه',
       'چهارشنبه',
       'پنجشنبه',
-      'جمعه'
+      'جمعه',
     ];
     timeOptions = allEntries.map((e) => e.time).toSet().toList();
+  }
+
+  // to send rquest
+  List<Course> allCourses = [];
+  List<Course> filteredCourses = [];
+  List<String> timeOptions1 = [];
+
+  Future<void> fetchScheduleFromApi() async {
+    try {
+      final courses = await ApiService().fetchSchedule(
+        widget.user.university,
+        widget.user.major,
+      );
+
+      setState(() {
+        allCourses = courses;
+        filteredCourses = List.from(courses);
+        timeOptions1 =
+            courses.map((e) => e.hour).toSet().toList()
+              ..sort((a, b) => _parseTime(a).compareTo(_parseTime(b)));
+
+        // Convert to ScheduleEntry list
+        allEntries =
+            courses.map((course) => ScheduleEntry.fromCourse(course)).toList();
+        filteredEntries = List.from(allEntries);
+      });
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('رواله')));
+    } catch (e) {
+      debugPrint('Error: $e');
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('خطا در دریافت برنامه')));
+    }
+  }
+
+  DateTime _parseTime(String time) {
+    final parts = time.split(':');
+    return DateTime(0, 0, 0, int.parse(parts[0]), int.parse(parts[1]));
   }
 
   @override
@@ -307,206 +304,220 @@ class _SchedulePageState extends State<SchedulePage> {
   }
 
   // Replace the entire _showJalaliDatePicker method with this simpler version
-Future<void> _showJalaliDatePicker(BuildContext context, bool isStartDate) async {
-  // Get current Jalali date
-  final now = DateTime.now();
-  final currentJalaliDate = JalaliDate.fromDateTime(now);
-  
-  // Get the currently selected date or default to current date
-  JalaliDate selectedDate = isStartDate 
-      ? startDate ?? currentJalaliDate 
-      : endDate ?? (startDate != null ? JalaliDate(startDate!.year, startDate!.month, startDate!.day + 7) : currentJalaliDate);
-  
-  // Initialize selected values
-  int selectedYear = selectedDate.year;
-  int selectedMonth = selectedDate.month;
-  int selectedDay = selectedDate.day;
-  
-  // Show the custom date picker dialog
-  await showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: Text(
-          isStartDate ? 'انتخاب تاریخ شروع' : 'انتخاب تاریخ پایان',
-          style: const TextStyle(fontFamily: 'Vazir', fontSize: 18),
-          textAlign: TextAlign.center,
-        ),
-        content: StatefulBuilder(
-          builder: (BuildContext context, StateSetter setState) {
-            // Calculate days in the selected month
-            int daysInMonth = 31; // Default for months 1-6
-            if (selectedMonth > 6) {
-              daysInMonth = 30; // For months 7-11
-            }
-            if (selectedMonth == 12) {
-              daysInMonth = 29; // For month 12 (Esfand)
-            }
-            
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Day selection
-                Row(
-                  children: [
-                    const Text(
-                      'روز:',
-                      style: TextStyle(fontFamily: 'Vazir'),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: DropdownButton<int>(
-                        isExpanded: true,
-                        value: selectedDay,
-                        items: List.generate(daysInMonth, (index) {
-                          final day = index + 1;
-                          return DropdownMenuItem<int>(
-                            value: day,
-                            child: Text(
-                              day.toString(),
-                              style: const TextStyle(fontFamily: 'Vazir'),
-                            ),
-                          );
-                        }),
-                        onChanged: (value) {
-                          setState(() {
-                            selectedDay = value!;
-                          });
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-                
-                // Month selection
-                Row(
-                  children: [
-                    const Text(
-                      'ماه:',
-                      style: TextStyle(fontFamily: 'Vazir'),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: DropdownButton<int>(
-                        isExpanded: true,
-                        value: selectedMonth,
-                        items: List.generate(12, (index) {
-                          final monthIndex = index + 1;
-                          return DropdownMenuItem<int>(
-                            value: monthIndex,
-                            child: Text(
-                              JalaliDate.getMonthName(monthIndex),
-                              style: const TextStyle(fontFamily: 'Vazir'),
-                            ),
-                          );
-                        }),
-                        onChanged: (value) {
-                          setState(() {
-                            selectedMonth = value!;
-                            
-                            // Adjust days in month based on selected month
-                            if (selectedMonth > 6) {
-                              daysInMonth = 30;
-                            } else {
-                              daysInMonth = 31;
-                            }
-                            if (selectedMonth == 12) {
-                              daysInMonth = 29;
-                            }
-                            
-                            // Adjust selected day if it exceeds days in month
-                            if (selectedDay > daysInMonth) {
-                              selectedDay = daysInMonth;
-                            }
-                          });
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-                
-                // Year selection
-                Row(
-                  children: [
-                    const Text(
-                      'سال:',
-                      style: TextStyle(fontFamily: 'Vazir'),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: DropdownButton<int>(
-                        isExpanded: true,
-                        value: selectedYear,
-                        items: List.generate(10, (index) => currentJalaliDate.year - 5 + index).map((year) {
-                          return DropdownMenuItem<int>(
-                            value: year,
-                            child: Text(
-                              year.toString(),
-                              style: const TextStyle(fontFamily: 'Vazir'),
-                            ),
-                          );
-                        }).toList(),
-                        onChanged: (value) {
-                          setState(() {
-                            selectedYear = value!;
-                          });
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            );
-          },
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              final selectedJalaliDate = JalaliDate(selectedYear, selectedMonth, selectedDay);
-              
-              if (isStartDate) {
-                setState(() {
-                  startDate = selectedJalaliDate;
-                  // If end date is before start date, adjust end date
-                  if (endDate != null && endDate!.compareTo(startDate!) < 0) {
-                    endDate = JalaliDate(startDate!.year, startDate!.month, startDate!.day + 7);
-                  }
-                });
-                
-                // If end date is not selected, show end date picker
-                if (endDate == null) {
-                  Navigator.of(context).pop();
-                  _showJalaliDatePicker(context, false);
-                  return;
-                }
-              } else {
-                setState(() {
-                  endDate = selectedJalaliDate;
-                });
+  Future<void> _showJalaliDatePicker(
+    BuildContext context,
+    bool isStartDate,
+  ) async {
+    // Get current Jalali date
+    final now = DateTime.now();
+    final currentJalaliDate = JalaliDate.fromDateTime(now);
+
+    // Get the currently selected date or default to current date
+    JalaliDate selectedDate =
+        isStartDate
+            ? startDate ?? currentJalaliDate
+            : endDate ??
+                (startDate != null
+                    ? JalaliDate(
+                      startDate!.year,
+                      startDate!.month,
+                      startDate!.day + 7,
+                    )
+                    : currentJalaliDate);
+
+    // Initialize selected values
+    int selectedYear = selectedDate.year;
+    int selectedMonth = selectedDate.month;
+    int selectedDay = selectedDate.day;
+
+    // Show the custom date picker dialog
+    await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(
+            isStartDate ? 'انتخاب تاریخ شروع' : 'انتخاب تاریخ پایان',
+            style: const TextStyle(fontFamily: 'Vazir', fontSize: 18),
+            textAlign: TextAlign.center,
+          ),
+          content: StatefulBuilder(
+            builder: (BuildContext context, StateSetter setState) {
+              // Calculate days in the selected month
+              int daysInMonth = 31; // Default for months 1-6
+              if (selectedMonth > 6) {
+                daysInMonth = 30; // For months 7-11
               }
-              
-              applyFilters();
-              Navigator.of(context).pop();
+              if (selectedMonth == 12) {
+                daysInMonth = 29; // For month 12 (Esfand)
+              }
+
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Day selection
+                  Row(
+                    children: [
+                      const Text('روز:', style: TextStyle(fontFamily: 'Vazir')),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: DropdownButton<int>(
+                          isExpanded: true,
+                          value: selectedDay,
+                          items: List.generate(daysInMonth, (index) {
+                            final day = index + 1;
+                            return DropdownMenuItem<int>(
+                              value: day,
+                              child: Text(
+                                day.toString(),
+                                style: const TextStyle(fontFamily: 'Vazir'),
+                              ),
+                            );
+                          }),
+                          onChanged: (value) {
+                            setState(() {
+                              selectedDay = value!;
+                            });
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  // Month selection
+                  Row(
+                    children: [
+                      const Text('ماه:', style: TextStyle(fontFamily: 'Vazir')),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: DropdownButton<int>(
+                          isExpanded: true,
+                          value: selectedMonth,
+                          items: List.generate(12, (index) {
+                            final monthIndex = index + 1;
+                            return DropdownMenuItem<int>(
+                              value: monthIndex,
+                              child: Text(
+                                JalaliDate.getMonthName(monthIndex),
+                                style: const TextStyle(fontFamily: 'Vazir'),
+                              ),
+                            );
+                          }),
+                          onChanged: (value) {
+                            setState(() {
+                              selectedMonth = value!;
+
+                              // Adjust days in month based on selected month
+                              if (selectedMonth > 6) {
+                                daysInMonth = 30;
+                              } else {
+                                daysInMonth = 31;
+                              }
+                              if (selectedMonth == 12) {
+                                daysInMonth = 29;
+                              }
+
+                              // Adjust selected day if it exceeds days in month
+                              if (selectedDay > daysInMonth) {
+                                selectedDay = daysInMonth;
+                              }
+                            });
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  // Year selection
+                  Row(
+                    children: [
+                      const Text('سال:', style: TextStyle(fontFamily: 'Vazir')),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: DropdownButton<int>(
+                          isExpanded: true,
+                          value: selectedYear,
+                          items:
+                              List.generate(
+                                10,
+                                (index) => currentJalaliDate.year - 5 + index,
+                              ).map((year) {
+                                return DropdownMenuItem<int>(
+                                  value: year,
+                                  child: Text(
+                                    year.toString(),
+                                    style: const TextStyle(fontFamily: 'Vazir'),
+                                  ),
+                                );
+                              }).toList(),
+                          onChanged: (value) {
+                            setState(() {
+                              selectedYear = value!;
+                            });
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              );
             },
-            child: Text(
-              'تأیید',
-              style: TextStyle(fontFamily: 'Vazir', color: primaryColor),
-            ),
           ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: const Text(
-              'انصراف',
-              style: TextStyle(fontFamily: 'Vazir', color: Colors.red),
+          actions: [
+            TextButton(
+              onPressed: () {
+                final selectedJalaliDate = JalaliDate(
+                  selectedYear,
+                  selectedMonth,
+                  selectedDay,
+                );
+
+                if (isStartDate) {
+                  setState(() {
+                    startDate = selectedJalaliDate;
+                    // If end date is before start date, adjust end date
+                    if (endDate != null && endDate!.compareTo(startDate!) < 0) {
+                      endDate = JalaliDate(
+                        startDate!.year,
+                        startDate!.month,
+                        startDate!.day + 7,
+                      );
+                    }
+                  });
+
+                  // If end date is not selected, show end date picker
+                  if (endDate == null) {
+                    Navigator.of(context).pop();
+                    _showJalaliDatePicker(context, false);
+                    return;
+                  }
+                } else {
+                  setState(() {
+                    endDate = selectedJalaliDate;
+                  });
+                }
+
+                applyFilters();
+                Navigator.of(context).pop();
+              },
+              child: Text(
+                'تأیید',
+                style: TextStyle(fontFamily: 'Vazir', color: primaryColor),
+              ),
             ),
-          ),
-        ],
-      );
-    },
-  );
-}
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text(
+                'انصراف',
+                style: TextStyle(fontFamily: 'Vazir', color: Colors.red),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   /**
    * Applies all selected filters to the schedule entries
@@ -548,7 +559,7 @@ Future<void> _showJalaliDatePicker(BuildContext context, bool isStartDate) async
 
         // Entry must match all applied filters
         return matchesDateRange && matchesDay && matchesTime && matchesCourseStatus && matchesSearch;
-      }).toList();
+      }).toList();  
     });
   }
 
@@ -575,7 +586,8 @@ Future<void> _showJalaliDatePicker(BuildContext context, bool isStartDate) async
     // Format date range for display
     String dateRangeText = '';
     if (startDate != null && endDate != null) {
-      dateRangeText = 'از ${startDate!.toFormattedString()} تا ${endDate!.toFormattedString()}';
+      dateRangeText =
+          'از ${startDate!.toFormattedString()} تا ${endDate!.toFormattedString()}';
     }
 
     return Scaffold(
@@ -613,10 +625,7 @@ Future<void> _showJalaliDatePicker(BuildContext context, bool isStartDate) async
                   gradient: const LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [
-                      Color(0xFF1A1A1A),
-                      Color(0xFF303030),
-                    ],
+                    colors: [Color(0xFF1A1A1A), Color(0xFF303030)],
                   ),
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
@@ -660,19 +669,26 @@ Future<void> _showJalaliDatePicker(BuildContext context, bool isStartDate) async
                             ),
                           ],
                         ),
-                        
+
                         // Reset filters button
                         InkWell(
                           onTap: resetFilters,
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
                             decoration: BoxDecoration(
                               color: primaryColor,
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: Row(
                               children: const [
-                                Icon(Icons.refresh, color: Colors.white, size: 14),
+                                Icon(
+                                  Icons.refresh,
+                                  color: Colors.white,
+                                  size: 14,
+                                ),
                                 SizedBox(width: 4),
                                 Text(
                                   'حذف فیلترها',
@@ -689,7 +705,7 @@ Future<void> _showJalaliDatePicker(BuildContext context, bool isStartDate) async
                       ],
                     ),
                     const SizedBox(height: 16),
-                    
+
                     // Search and date range filters
                     Row(
                       children: [
@@ -707,22 +723,37 @@ Future<void> _showJalaliDatePicker(BuildContext context, bool isStartDate) async
                               ),
                             ),
                             child: TextField(
+                              textDirection: TextDirection.rtl,
                               controller: _searchController,
                               textAlign: TextAlign.right,
-                              style: const TextStyle(color: Colors.white, fontSize: 14),
+                              style: const TextStyle(
+                                color: Colors.black,
+                                fontSize: 14,
+                              ),
                               decoration: InputDecoration(
                                 hintText: 'جستجوی نام یا کد درس',
-                                hintStyle: const TextStyle(color: Colors.grey, fontSize: 12, fontFamily: 'Vazir'),
+                                hintStyle: const TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 12,
+                                  fontFamily: 'Vazir',
+                                ),
                                 prefixIcon: Container(
                                   margin: const EdgeInsets.all(8),
                                   decoration: BoxDecoration(
                                     color: primaryColor,
                                     borderRadius: BorderRadius.circular(12),
                                   ),
-                                  child: const Icon(Icons.search, color: Colors.white, size: 16),
+                                  child: const Icon(
+                                    Icons.search,
+                                    color: Colors.white,
+                                    size: 16,
+                                  ),
                                 ),
                                 border: InputBorder.none,
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 8,
+                                ),
                               ),
                               onChanged: (value) {
                                 setState(() {
@@ -733,9 +764,9 @@ Future<void> _showJalaliDatePicker(BuildContext context, bool isStartDate) async
                             ),
                           ),
                         ),
-                        
+
                         const SizedBox(width: 12),
-                        
+
                         // Date range selector
                         Expanded(
                           flex: 2,
@@ -747,35 +778,47 @@ Future<void> _showJalaliDatePicker(BuildContext context, bool isStartDate) async
                                 color: Colors.grey[800],
                                 borderRadius: BorderRadius.circular(20),
                                 border: Border.all(
-                                  color: dateRangeText.isEmpty ? Colors.grey[700]! : primaryColor,
+                                  color:
+                                      dateRangeText.isEmpty
+                                          ? Colors.grey[700]!
+                                          : primaryColor,
                                   width: 1,
                                 ),
                               ),
-                              padding: const EdgeInsets.symmetric(horizontal: 12),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                              ),
                               child: Row(
                                 children: [
                                   Container(
                                     padding: const EdgeInsets.all(4),
                                     decoration: BoxDecoration(
-                                      color: dateRangeText.isEmpty 
-                                          ? Colors.grey.withOpacity(0.2) 
-                                          : primaryColor.withOpacity(0.2),
+                                      color:
+                                          dateRangeText.isEmpty
+                                              ? Colors.grey.withOpacity(0.2)
+                                              : primaryColor.withOpacity(0.2),
                                       borderRadius: BorderRadius.circular(12),
                                     ),
                                     child: Icon(
                                       Icons.date_range,
-                                      color: dateRangeText.isEmpty 
-                                          ? Colors.grey 
-                                          : primaryColor,
+                                      color:
+                                          dateRangeText.isEmpty
+                                              ? Colors.grey
+                                              : primaryColor,
                                       size: 16,
                                     ),
                                   ),
                                   const SizedBox(width: 8),
                                   Expanded(
                                     child: Text(
-                                      dateRangeText.isEmpty ? 'بازه تاریخ' : dateRangeText,
+                                      dateRangeText.isEmpty
+                                          ? 'بازه تاریخ'
+                                          : dateRangeText,
                                       style: TextStyle(
-                                        color: dateRangeText.isEmpty ? Colors.grey : Colors.white,
+                                        color:
+                                            dateRangeText.isEmpty
+                                                ? Colors.grey
+                                                : Colors.white,
                                         fontSize: 12,
                                         fontFamily: 'Vazir',
                                       ),
@@ -789,9 +832,9 @@ Future<void> _showJalaliDatePicker(BuildContext context, bool isStartDate) async
                         ),
                       ],
                     ),
-                    
+
                     const SizedBox(height: 12),
-                    
+
                     // Day and time filters
                     Row(
                       children: [
@@ -803,9 +846,10 @@ Future<void> _showJalaliDatePicker(BuildContext context, bool isStartDate) async
                               color: Colors.grey[800],
                               borderRadius: BorderRadius.circular(20),
                               border: Border.all(
-                                color: selectedDay != null 
-                                    ? primaryColor 
-                                    : Colors.grey[700]!,
+                                color:
+                                    selectedDay != null
+                                        ? primaryColor
+                                        : Colors.grey[700]!,
                                 width: 1,
                               ),
                             ),
@@ -815,16 +859,18 @@ Future<void> _showJalaliDatePicker(BuildContext context, bool isStartDate) async
                                 Container(
                                   padding: const EdgeInsets.all(4),
                                   decoration: BoxDecoration(
-                                    color: selectedDay != null 
-                                        ? primaryColor.withOpacity(0.2) 
-                                        : Colors.grey.withOpacity(0.2),
+                                    color:
+                                        selectedDay != null
+                                            ? primaryColor.withOpacity(0.2)
+                                            : Colors.grey.withOpacity(0.2),
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   child: Icon(
                                     Icons.calendar_today,
-                                    color: selectedDay != null 
-                                        ? primaryColor 
-                                        : Colors.grey,
+                                    color:
+                                        selectedDay != null
+                                            ? primaryColor
+                                            : Colors.grey,
                                     size: 16,
                                   ),
                                 ),
@@ -842,7 +888,11 @@ Future<void> _showJalaliDatePicker(BuildContext context, bool isStartDate) async
                                           fontFamily: 'Vazir',
                                         ),
                                       ),
-                                      icon: const Icon(Icons.arrow_drop_down, color: Colors.grey, size: 20),
+                                      icon: const Icon(
+                                        Icons.arrow_drop_down,
+                                        color: Colors.grey,
+                                        size: 20,
+                                      ),
                                       dropdownColor: Colors.grey[800],
                                       style: const TextStyle(
                                         color: Colors.white,
@@ -855,12 +905,17 @@ Future<void> _showJalaliDatePicker(BuildContext context, bool isStartDate) async
                                           applyFilters();
                                         });
                                       },
-                                      items: dayOptions.map<DropdownMenuItem<String>>((String value) {
-                                        return DropdownMenuItem<String>(
-                                          value: value,
-                                          child: Text(value),
-                                        );
-                                      }).toList(),
+                                      items:
+                                          dayOptions
+                                              .map<DropdownMenuItem<String>>((
+                                                String value,
+                                              ) {
+                                                return DropdownMenuItem<String>(
+                                                  value: value,
+                                                  child: Text(value),
+                                                );
+                                              })
+                                              .toList(),
                                     ),
                                   ),
                                 ),
@@ -868,9 +923,9 @@ Future<void> _showJalaliDatePicker(BuildContext context, bool isStartDate) async
                             ),
                           ),
                         ),
-                        
+
                         const SizedBox(width: 12),
-                        
+
                         // Class time filter
                         Expanded(
                           child: Container(
@@ -879,9 +934,10 @@ Future<void> _showJalaliDatePicker(BuildContext context, bool isStartDate) async
                               color: Colors.grey[800],
                               borderRadius: BorderRadius.circular(20),
                               border: Border.all(
-                                color: selectedTime != null 
-                                    ? primaryColor 
-                                    : Colors.grey[700]!,
+                                color:
+                                    selectedTime != null
+                                        ? primaryColor
+                                        : Colors.grey[700]!,
                                 width: 1,
                               ),
                             ),
@@ -891,16 +947,18 @@ Future<void> _showJalaliDatePicker(BuildContext context, bool isStartDate) async
                                 Container(
                                   padding: const EdgeInsets.all(4),
                                   decoration: BoxDecoration(
-                                    color: selectedTime != null 
-                                        ? primaryColor.withOpacity(0.2) 
-                                        : Colors.grey.withOpacity(0.2),
+                                    color:
+                                        selectedTime != null
+                                            ? primaryColor.withOpacity(0.2)
+                                            : Colors.grey.withOpacity(0.2),
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   child: Icon(
                                     Icons.access_time,
-                                    color: selectedTime != null 
-                                        ? primaryColor 
-                                        : Colors.grey,
+                                    color:
+                                        selectedTime != null
+                                            ? primaryColor
+                                            : Colors.grey,
                                     size: 16,
                                   ),
                                 ),
@@ -918,7 +976,11 @@ Future<void> _showJalaliDatePicker(BuildContext context, bool isStartDate) async
                                           fontFamily: 'Vazir',
                                         ),
                                       ),
-                                      icon: const Icon(Icons.arrow_drop_down, color: Colors.grey, size: 20),
+                                      icon: const Icon(
+                                        Icons.arrow_drop_down,
+                                        color: Colors.grey,
+                                        size: 20,
+                                      ),
                                       dropdownColor: Colors.grey[800],
                                       style: const TextStyle(
                                         color: Colors.white,
@@ -931,12 +993,17 @@ Future<void> _showJalaliDatePicker(BuildContext context, bool isStartDate) async
                                           applyFilters();
                                         });
                                       },
-                                      items: timeOptions.map<DropdownMenuItem<String>>((String value) {
-                                        return DropdownMenuItem<String>(
-                                          value: value,
-                                          child: Text(value),
-                                        );
-                                      }).toList(),
+                                      items:
+                                          timeOptions1
+                                              .map<DropdownMenuItem<String>>((
+                                                String value,
+                                              ) {
+                                                return DropdownMenuItem<String>(
+                                                  value: value,
+                                                  child: Text(value),
+                                                );
+                                              })
+                                              .toList(),
                                     ),
                                   ),
                                 ),
@@ -1052,8 +1119,8 @@ Future<void> _showJalaliDatePicker(BuildContext context, bool isStartDate) async
                             width: 1.5,
                           ),
                           defaultColumnWidth: const FixedColumnWidth(120),
-                          columnWidths: const {
-                            0: FixedColumnWidth(180), // Course Name (now first)
+                          columnWidths: const {   
+                            0: FixedColumnWidth(180), // Course Name
                             1: FixedColumnWidth(100), // Day
                             2: FixedColumnWidth(120), // Date
                             3: FixedColumnWidth(120), // Class Time
@@ -1065,9 +1132,7 @@ Future<void> _showJalaliDatePicker(BuildContext context, bool isStartDate) async
                           children: [
                             // Header row
                             TableRow(
-                              decoration: BoxDecoration(
-                                color: primaryColor,
-                              ),
+                              decoration: BoxDecoration(color: primaryColor),
                               children: const [
                                 // Course Name (now first)
                                 TableCell(
@@ -1130,6 +1195,7 @@ Future<void> _showJalaliDatePicker(BuildContext context, bool isStartDate) async
                                     ),
                                   ),
                                 ),
+
                                 TableCell(
                                   child: Padding(
                                     padding: EdgeInsets.all(8.0),
@@ -1193,13 +1259,14 @@ Future<void> _showJalaliDatePicker(BuildContext context, bool isStartDate) async
                               ],
                             ),
                             // Data rows
-                            ...filteredEntries
-                                .map((entry) => _buildDataTableRow(entry)),
+                            ...filteredEntries.map(
+                              (entry) => _buildDataTableRow(entry),
+                            ),
 
                             // Add empty rows if filtered entries are less than 10
-                            if (filteredEntries.length < 7)
+                            if (filteredEntries.length < 1)
                               ...List.generate(
-                                7 - filteredEntries.length,
+                                1 - filteredEntries.length,
                                 (index) => _buildEmptyTableRow(),
                               ),
                           ],
@@ -1225,12 +1292,11 @@ Future<void> _showJalaliDatePicker(BuildContext context, bool isStartDate) async
   TableRow _buildDataTableRow(ScheduleEntry entry) {
     // Format the date for display
     final JalaliDate jalaliDate = entry.jalaliDate;
-    final String formattedDate = '${jalaliDate.day} ${JalaliDate.getMonthName(jalaliDate.month)} ${jalaliDate.year}';
-    
+    final String formattedDate =
+        '${jalaliDate.day} ${JalaliDate.getMonthName(jalaliDate.month)} ${jalaliDate.year}';
+
     return TableRow(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-      ),
+      decoration: const BoxDecoration(color: Colors.white),
       children: [
         // Course Name - Always show this (now first)
         TableCell(
@@ -1239,6 +1305,7 @@ Future<void> _showJalaliDatePicker(BuildContext context, bool isStartDate) async
             child: Center(
               child: Text(
                 entry.courseName,
+
                 style: const TextStyle(
                   color: Colors.black,
                   fontFamily: 'Vazir',
@@ -1255,6 +1322,7 @@ Future<void> _showJalaliDatePicker(BuildContext context, bool isStartDate) async
             child: Center(
               child: Text(
                 entry.isOffered ? entry.day : '',
+               
                 style: const TextStyle(
                   color: Colors.black,
                   fontFamily: 'Vazir',
@@ -1269,7 +1337,9 @@ Future<void> _showJalaliDatePicker(BuildContext context, bool isStartDate) async
             padding: const EdgeInsets.all(8.0),
             child: Center(
               child: Text(
+                
                 entry.isOffered ? formattedDate : '',
+
                 style: const TextStyle(
                   color: Colors.black,
                   fontFamily: 'Vazir',
@@ -1284,6 +1354,7 @@ Future<void> _showJalaliDatePicker(BuildContext context, bool isStartDate) async
             padding: const EdgeInsets.all(8.0),
             child: Center(
               child: Text(
+                
                 entry.isOffered ? entry.time : '',
                 style: const TextStyle(
                   color: Colors.black,
@@ -1373,19 +1444,14 @@ Future<void> _showJalaliDatePicker(BuildContext context, bool isStartDate) async
    */
   TableRow _buildEmptyTableRow() {
     return TableRow(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-      ),
+      decoration: const BoxDecoration(color: Colors.white),
       children: List.generate(
         8, // Updated to include the new column
         (index) => const TableCell(
           child: SizedBox(
             height: 40,
             child: Center(
-              child: Text(
-                '',
-                style: TextStyle(color: Colors.black),
-              ),
+              child: Text('', style: TextStyle(color: Colors.black)),
             ),
           ),
         ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_2/models/User.dart';
 import 'login_page.dart';
 import 'weekly_schedule_page.dart';
 import 'term_schedule_page.dart';
@@ -6,11 +7,10 @@ import 'exam_schedule_page.dart';
 
 class SimpleDashboard extends StatelessWidget {
   final String username;
- 
-  const SimpleDashboard({
-    super.key,
-    required this.username,
-  });
+
+  final User user1;
+  SimpleDashboard({Key? key, required this.username, required this.user1})
+    : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -72,9 +72,9 @@ class SimpleDashboard extends StatelessWidget {
                   ],
                 ),
               ),
-             
+
               const SizedBox(height: 24),
-             
+
               // Menu title
               const Text(
                 'منوی برنامه‌ها',
@@ -84,9 +84,9 @@ class SimpleDashboard extends StatelessWidget {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-             
+
               const SizedBox(height: 16),
-             
+
               // Menu items as simple list
               Expanded(
                 child: ListView(
@@ -124,7 +124,7 @@ class SimpleDashboard extends StatelessWidget {
       ),
     );
   }
- 
+
   Widget _buildMenuListItem({
     required String title,
     required IconData icon,
@@ -134,11 +134,7 @@ class SimpleDashboard extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: ListTile(
-        leading: Icon(
-          icon,
-          color: color,
-          size: 28,
-        ),
+        leading: Icon(icon, color: color, size: 28),
         title: Text(
           title,
           style: const TextStyle(
@@ -152,22 +148,26 @@ class SimpleDashboard extends StatelessWidget {
       ),
     );
   }
- 
+
   void _navigateToPage(BuildContext context, String pageName) {
     if (pageName == 'برنامه هفتگی') {
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => const WeeklySchedulePage()),
+        MaterialPageRoute(
+          builder: (context) => WeeklySchedulePage(currentUser: user1),
+        ),
       );
     } else if (pageName == 'برنامه ترم') {
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => const SchedulePage()),
+        MaterialPageRoute(builder: (context) => SchedulePage(user: user1)),
       );
     } else if (pageName == 'برنامه امتحانی') {
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => const ExamSchedulePage()),
+        MaterialPageRoute(
+          builder: (context) => ExamSchedulePage(currentUser: user1),
+        ),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -183,4 +183,3 @@ class SimpleDashboard extends StatelessWidget {
     }
   }
 }
-
