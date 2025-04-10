@@ -130,6 +130,7 @@ class _LoginPageState extends State<LoginPage> {
                               (context) => SimpleDashboard(
                                 user1: user,
                                 username: username.isEmpty ? 'کاربر' : username,
+                                role: user.role,
                               ),
                         ),
                       );

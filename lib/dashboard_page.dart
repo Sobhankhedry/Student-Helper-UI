@@ -7,10 +7,14 @@ import 'exam_schedule_page.dart';
 
 class SimpleDashboard extends StatelessWidget {
   final String username;
-
+  final String role;
   final User user1;
-  SimpleDashboard({Key? key, required this.username, required this.user1})
-    : super(key: key);
+  SimpleDashboard({
+    Key? key,
+    required this.username,
+    required this.user1,
+    required this.role,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

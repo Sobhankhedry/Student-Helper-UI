@@ -13,12 +13,14 @@ class Exam {
   final String instructor;
   final String classroom;
   final Color color;
+  final String examHour;
 
   Exam({
     required this.courseName,
     required this.instructor,
     required this.classroom,
     required this.color,
+    required this.examHour,
   });
 }
 
@@ -70,17 +72,17 @@ class _ExamSchedulePageState extends State<ExamSchedulePage> {
         '1402/10/28',
         '1402/10/29',
         '1402/10/30',
-        '1402/11/1',
-        '1402/11/2',
-        '1402/11/3',
+        '1402/11/01',
+        '1402/11/02',
+        '1402/11/03',
       ];
       final List<String> week2Dates = [
-        '1402/11/4',
-        '1402/11/5',
-        '1402/11/6',
-        '1402/11/7',
-        '1402/11/8',
-        '1402/11/9',
+        '1402/11/04',
+        '1402/11/05',
+        '1402/11/06',
+        '1402/11/07',
+        '1402/11/08',
+        '1402/11/09',
         '1402/11/10',
       ];
 
@@ -88,7 +90,7 @@ class _ExamSchedulePageState extends State<ExamSchedulePage> {
 
       for (var course in courses) {
         final date = course.finalExam.trim();
-        int slot = getSlotIndex(course.hour);
+        int slot = getSlotIndex(course.examHour);
 
         if (slot != -1 &&
             (week1Dates.contains(date) || week2Dates.contains(date))) {
@@ -97,6 +99,7 @@ class _ExamSchedulePageState extends State<ExamSchedulePage> {
             courseName: course.courseName,
             instructor: course.professorName,
             classroom: course.classroom,
+            examHour: course.examHour ?? course.hour,
             color: Colors.primaries[slot % Colors.primaries.length].shade100,
           );
         }
@@ -255,7 +258,7 @@ class _ExamSchedulePageState extends State<ExamSchedulePage> {
               '1402/11/3',
             ]
             : [
-              '1402/11/4',
+              '1402/11/04',
               '1402/11/5',
               '1402/11/6',
               '1402/11/7',
