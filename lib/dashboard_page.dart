@@ -3,6 +3,7 @@ import 'login_page.dart';
 import 'weekly_schedule_page.dart';
 import 'term_schedule_page.dart';
 import 'exam_schedule_page.dart';
+import 'course_schedule_page.dart';
 
 class SimpleDashboard extends StatelessWidget {
   final String username;
@@ -164,7 +165,12 @@ class SimpleDashboard extends StatelessWidget {
         context,
         MaterialPageRoute(builder: (context) => const SchedulePage()),
       );
-    } else if (pageName == 'برنامه امتحانی') {
+    } else if (pageName == 'برنامه رشته') {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const CourseSchedulePage()),
+    );
+  } else if (pageName == 'برنامه امتحانی') {
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => const ExamSchedulePage()),
@@ -183,4 +189,3 @@ class SimpleDashboard extends StatelessWidget {
     }
   }
 }
-
