@@ -38,7 +38,7 @@ class _WeeklySchedulePageState extends State<WeeklySchedulePage> {
   int _selectedWeek = 1;
 
   // Total number of weeks in a term
-  final int _totalWeeks = 16;
+  final int _totalWeeks = 8;
   Map<int, Map<String, Map<int, thisCourse>>> weeklySchedules = {};
 
   @override
@@ -68,23 +68,23 @@ class _WeeklySchedulePageState extends State<WeeklySchedulePage> {
         '1402/01/13': 2,
         '1402/01/14': 2,
 
-        // // هفته سوم
-        // '1402/1/15': 3,
-        // '1402/1/16': 3,
-        // '1402/1/17': 3,
-        // '1402/1/18': 3,
-        // '1402/1/19': 3,
-        // '1402/1/20': 3,
-        // '1402/1/21': 3,
+        // هفته سوم
+        '1402/01/15': 3,
+        '1402/01/16': 3,
+        '1402/01/17': 3,
+        '1402/01/18': 3,
+        '1402/01/19': 3,
+        '1402/01/20': 3,
+        '1402/01/21': 3,
 
         // // هفته چهارم
-        // '1402/1/22': 4,
-        // '1402/1/23': 4,
-        // '1402/1/24': 4,
-        // '1402/1/25': 4,
-        // '1402/1/26': 4,
-        // '1402/1/27': 4,
-        // '1402/1/28': 4,
+        '1402/01/22': 4,
+        '1402/01/23': 4,
+        '1402/01/24': 4,
+        '1402/01/25': 4,
+        '1402/01/26': 4,
+        '1402/01/27': 4,
+        '1402/01/28': 4,
 
         // // هفته پنجم
         // '1402/1/29': 5,
@@ -324,7 +324,7 @@ class _WeeklySchedulePageState extends State<WeeklySchedulePage> {
     // Define days of the week in Persian
     final List<String> weekDays = [
       'شنبه',
-      'یکشنبه',
+      'یک شنبه',
       'دو شنبه',
       'سه شنبه',
       'چهار شنبه',
