@@ -1,14 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_2/models/User.dart';
+import 'package:flutter_application_2/selected_schedule_page.dart';
 
 // Define the primary theme color for the application
 const Color primaryColor = Color.fromARGB(255, 76, 175, 80); // Changed to green
 
-/**
- * JalaliDate Class
- * 
- * A simple implementation of the Persian (Jalali) calendar system.
- * Provides functionality for date conversion, comparison, and formatting.
- */
 class JalaliDate {
   final int year;
   final int month;
@@ -29,16 +25,26 @@ class JalaliDate {
    */
   static String getMonthName(int month) {
     final List<String> monthNames = [
-      'فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور',
-      'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند'
+      'فروردین',
+      'اردیبهشت',
+      'خرداد',
+      'تیر',
+      'مرداد',
+      'شهریور',
+      'مهر',
+      'آبان',
+      'آذر',
+      'دی',
+      'بهمن',
+      'اسفند',
     ];
-    
+
     if (month >= 1 && month <= 12) {
       return monthNames[month - 1];
     }
     return '';
   }
-  
+
   /**
    * Formats the date as a human-readable string
    * 
@@ -124,14 +130,10 @@ class CourseEntry {
   }
 }
 
-/**
- * CourseSchedulePage Widget
- * 
- * The main widget for displaying and selecting courses.
- * Provides a comprehensive UI for viewing, filtering, and selecting courses.
- */
 class CourseSchedulePage extends StatefulWidget {
-  const CourseSchedulePage({Key? key}) : super(key: key);
+  final User currentUser;
+  const CourseSchedulePage({Key? key, required this.currentUser})
+    : super(key: key);
 
   @override
   State<CourseSchedulePage> createState() => _CourseSchedulePageState();
@@ -149,10 +151,10 @@ class _CourseSchedulePageState extends State<CourseSchedulePage> {
   // Data collections
   late List<CourseEntry> allCourses;
   late List<CourseEntry> filteredCourses;
-  
+
   // Selected courses
   List<CourseEntry> selectedCourses = [];
-  
+
   // Conflict information
   List<String> conflicts = [];
   bool showSelectedOnly = false;
@@ -290,7 +292,7 @@ class _CourseSchedulePageState extends State<CourseSchedulePage> {
       'سه شنبه',
       'چهارشنبه',
       'پنجشنبه',
-      'جمعه'
+      'جمعه',
     ];
     timeOptions = allCourses.map((e) => e.time).toSet().toList();
   }
@@ -312,22 +314,26 @@ class _CourseSchedulePageState extends State<CourseSchedulePage> {
       if (showSelectedOnly) {
         filteredCourses = selectedCourses;
       } else {
-        filteredCourses = allCourses.where((course) {
-          // Day filter
-          bool matchesDay = selectedDay == null || course.day == selectedDay;
-          
-          // Time filter
-          bool matchesTime = selectedTime == null || course.time == selectedTime;
-          
-          // Search query filter
-          bool matchesSearch = searchQuery.isEmpty ||
-              course.courseName.contains(searchQuery) ||
-              course.courseCode.contains(searchQuery) ||
-              course.instructor.contains(searchQuery);
+        filteredCourses =
+            allCourses.where((course) {
+              // Day filter
+              bool matchesDay =
+                  selectedDay == null || course.day == selectedDay;
 
-          // Course must match all applied filters
-          return matchesDay && matchesTime && matchesSearch;
-        }).toList();
+              // Time filter
+              bool matchesTime =
+                  selectedTime == null || course.time == selectedTime;
+
+              // Search query filter
+              bool matchesSearch =
+                  searchQuery.isEmpty ||
+                  course.courseName.contains(searchQuery) ||
+                  course.courseCode.contains(searchQuery) ||
+                  course.instructor.contains(searchQuery);
+
+              // Course must match all applied filters
+              return matchesDay && matchesTime && matchesSearch;
+            }).toList();
       }
     });
   }
@@ -358,15 +364,15 @@ class _CourseSchedulePageState extends State<CourseSchedulePage> {
     // Find the course in allCourses
     int index = allCourses.indexWhere((course) => course.id == courseId);
     if (index == -1) return false;
-    
+
     // Get the course
     CourseEntry course = allCourses[index];
-    
+
     // If we're trying to select (not deselect)
     if (!course.isSelected) {
       // Check for conflicts with already selected courses
       String? conflictMessage = checkConflictWithCourse(course);
-      
+
       // If there's a conflict, show message and don't allow selection
       if (conflictMessage != null) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -383,28 +389,29 @@ class _CourseSchedulePageState extends State<CourseSchedulePage> {
         return false;
       }
     }
-    
+
     setState(() {
       // Toggle the selection
       bool newSelectionState = !course.isSelected;
-      
+
       // Update the course in allCourses
       allCourses[index] = course.copyWith(isSelected: newSelectionState);
-      
+
       // Update selectedCourses list
       if (newSelectionState) {
         selectedCourses.add(allCourses[index]);
       } else {
         selectedCourses.removeWhere((c) => c.id == courseId);
       }
-      
+
       // Update the filtered list as well
       int filteredIndex = filteredCourses.indexWhere((c) => c.id == courseId);
       if (filteredIndex != -1) {
-        filteredCourses[filteredIndex] = filteredCourses[filteredIndex].copyWith(isSelected: newSelectionState);
+        filteredCourses[filteredIndex] = filteredCourses[filteredIndex]
+            .copyWith(isSelected: newSelectionState);
       }
     });
-    
+
     return true;
   }
 
@@ -428,84 +435,101 @@ class _CourseSchedulePageState extends State<CourseSchedulePage> {
    */
   void showSelectedCoursesAndConflicts() {
     // Calculate total credits
-    int totalCredits = selectedCourses.fold(0, (sum, course) => sum + course.credits);
-    
+    int totalCredits = selectedCourses.fold(
+      0,
+      (sum, course) => sum + course.credits,
+    );
+
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(
-          'دروس انتخاب شده',
-          style: const TextStyle(fontFamily: 'Vazir', fontSize: 18),
-          textAlign: TextAlign.center,
-        ),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Selected courses
-              Text(
-                'تعداد دروس: ${selectedCourses.length}',
-                style: const TextStyle(fontFamily: 'Vazir', fontWeight: FontWeight.bold),
-              ),
-              Text(
-                'مجموع واحدها: $totalCredits',
-                style: const TextStyle(fontFamily: 'Vazir', fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 16),
-              
-              // List of selected courses
-              ...selectedCourses.map((course) => Padding(
-                padding: const EdgeInsets.only(bottom: 8.0),
-                child: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.green[50],
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: primaryColor.withOpacity(0.3)),
+      builder:
+          (context) => AlertDialog(
+            title: Text(
+              'دروس انتخاب شده',
+              style: const TextStyle(fontFamily: 'Vazir', fontSize: 18),
+              textAlign: TextAlign.center,
+            ),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Selected courses
+                  Text(
+                    'تعداد دروس: ${selectedCourses.length}',
+                    style: const TextStyle(
+                      fontFamily: 'Vazir',
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        course.courseName,
-                        style: const TextStyle(fontFamily: 'Vazir', fontWeight: FontWeight.bold),
-                      ),
-                      Text(
-                        'استاد: ${course.instructor}',
-                        style: const TextStyle(fontFamily: 'Vazir'),
-                      ),
-                      Text(
-                        'زمان: ${course.day} ${course.time}',
-                        style: const TextStyle(fontFamily: 'Vazir'),
-                      ),
-                      Text(
-                        'کلاس: ${course.classroom}',
-                        style: const TextStyle(fontFamily: 'Vazir'),
-                      ),
-                      Text(
-                        'تعداد واحد: ${course.credits}',
-                        style: const TextStyle(fontFamily: 'Vazir'),
-                      ),
-                    ],
+                  Text(
+                    'مجموع واحدها: $totalCredits',
+                    style: const TextStyle(
+                      fontFamily: 'Vazir',
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
+                  const SizedBox(height: 16),
+
+                  // List of selected courses
+                  ...selectedCourses.map(
+                    (course) => Padding(
+                      padding: const EdgeInsets.only(bottom: 8.0),
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.green[50],
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: primaryColor.withOpacity(0.3),
+                          ),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              course.courseName,
+                              style: const TextStyle(
+                                fontFamily: 'Vazir',
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              'استاد: ${course.instructor}',
+                              style: const TextStyle(fontFamily: 'Vazir'),
+                            ),
+                            Text(
+                              'زمان: ${course.day} ${course.time}',
+                              style: const TextStyle(fontFamily: 'Vazir'),
+                            ),
+                            Text(
+                              'کلاس: ${course.classroom}',
+                              style: const TextStyle(fontFamily: 'Vazir'),
+                            ),
+                            Text(
+                              'تعداد واحد: ${course.credits}',
+                              style: const TextStyle(fontFamily: 'Vazir'),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text(
+                  'بستن',
+                  style: TextStyle(fontFamily: 'Vazir', color: primaryColor),
                 ),
-              )),
+              ),
             ],
           ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: Text(
-              'بستن',
-              style: TextStyle(fontFamily: 'Vazir', color: primaryColor),
-            ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -593,19 +617,26 @@ class _CourseSchedulePageState extends State<CourseSchedulePage> {
                             ),
                           ],
                         ),
-                        
+
                         // Reset filters button
                         InkWell(
                           onTap: resetFilters,
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
                             decoration: BoxDecoration(
                               color: primaryColor,
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: Row(
                               children: const [
-                                Icon(Icons.refresh, color: Colors.white, size: 14),
+                                Icon(
+                                  Icons.refresh,
+                                  color: Colors.white,
+                                  size: 14,
+                                ),
                                 SizedBox(width: 4),
                                 Text(
                                   'حذف فیلترها',
@@ -622,7 +653,7 @@ class _CourseSchedulePageState extends State<CourseSchedulePage> {
                       ],
                     ),
                     const SizedBox(height: 16),
-                    
+
                     // Search field
                     Container(
                       height: 40,
@@ -637,20 +668,34 @@ class _CourseSchedulePageState extends State<CourseSchedulePage> {
                       child: TextField(
                         controller: _searchController,
                         textAlign: TextAlign.right,
-                        style: const TextStyle(color: Colors.white, fontSize: 14),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                        ),
                         decoration: InputDecoration(
                           hintText: 'جستجوی نام درس، کد درس یا استاد',
-                          hintStyle: const TextStyle(color: Colors.grey, fontSize: 12, fontFamily: 'Vazir'),
+                          hintStyle: const TextStyle(
+                            color: Colors.grey,
+                            fontSize: 12,
+                            fontFamily: 'Vazir',
+                          ),
                           prefixIcon: Container(
                             margin: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
                               color: primaryColor,
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            child: const Icon(Icons.search, color: Colors.white, size: 16),
+                            child: const Icon(
+                              Icons.search,
+                              color: Colors.white,
+                              size: 16,
+                            ),
                           ),
                           border: InputBorder.none,
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 8,
+                          ),
                         ),
                         onChanged: (value) {
                           setState(() {
@@ -660,9 +705,9 @@ class _CourseSchedulePageState extends State<CourseSchedulePage> {
                         },
                       ),
                     ),
-                    
+
                     const SizedBox(height: 12),
-                    
+
                     // Day and time filters
                     Row(
                       children: [
@@ -674,9 +719,10 @@ class _CourseSchedulePageState extends State<CourseSchedulePage> {
                               color: Colors.white.withOpacity(0.1),
                               borderRadius: BorderRadius.circular(20),
                               border: Border.all(
-                                color: selectedDay != null 
-                                    ? primaryColor 
-                                    : primaryColor.withOpacity(0.3),
+                                color:
+                                    selectedDay != null
+                                        ? primaryColor
+                                        : primaryColor.withOpacity(0.3),
                                 width: 1,
                               ),
                             ),
@@ -686,16 +732,18 @@ class _CourseSchedulePageState extends State<CourseSchedulePage> {
                                 Container(
                                   padding: const EdgeInsets.all(4),
                                   decoration: BoxDecoration(
-                                    color: selectedDay != null 
-                                        ? primaryColor.withOpacity(0.2) 
-                                        : Colors.white.withOpacity(0.1),
+                                    color:
+                                        selectedDay != null
+                                            ? primaryColor.withOpacity(0.2)
+                                            : Colors.white.withOpacity(0.1),
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   child: Icon(
                                     Icons.calendar_today,
-                                    color: selectedDay != null 
-                                        ? primaryColor 
-                                        : Colors.grey,
+                                    color:
+                                        selectedDay != null
+                                            ? primaryColor
+                                            : Colors.grey,
                                     size: 16,
                                   ),
                                 ),
@@ -713,7 +761,11 @@ class _CourseSchedulePageState extends State<CourseSchedulePage> {
                                           fontFamily: 'Vazir',
                                         ),
                                       ),
-                                      icon: const Icon(Icons.arrow_drop_down, color: Colors.grey, size: 20),
+                                      icon: const Icon(
+                                        Icons.arrow_drop_down,
+                                        color: Colors.grey,
+                                        size: 20,
+                                      ),
                                       dropdownColor: Colors.grey[800],
                                       style: const TextStyle(
                                         color: Colors.white,
@@ -726,12 +778,17 @@ class _CourseSchedulePageState extends State<CourseSchedulePage> {
                                           applyFilters();
                                         });
                                       },
-                                      items: dayOptions.map<DropdownMenuItem<String>>((String value) {
-                                        return DropdownMenuItem<String>(
-                                          value: value,
-                                          child: Text(value),
-                                        );
-                                      }).toList(),
+                                      items:
+                                          dayOptions
+                                              .map<DropdownMenuItem<String>>((
+                                                String value,
+                                              ) {
+                                                return DropdownMenuItem<String>(
+                                                  value: value,
+                                                  child: Text(value),
+                                                );
+                                              })
+                                              .toList(),
                                     ),
                                   ),
                                 ),
@@ -739,9 +796,9 @@ class _CourseSchedulePageState extends State<CourseSchedulePage> {
                             ),
                           ),
                         ),
-                        
+
                         const SizedBox(width: 12),
-                        
+
                         // Class time filter
                         Expanded(
                           child: Container(
@@ -750,9 +807,10 @@ class _CourseSchedulePageState extends State<CourseSchedulePage> {
                               color: Colors.white.withOpacity(0.1),
                               borderRadius: BorderRadius.circular(20),
                               border: Border.all(
-                                color: selectedTime != null 
-                                    ? primaryColor 
-                                    : primaryColor.withOpacity(0.3),
+                                color:
+                                    selectedTime != null
+                                        ? primaryColor
+                                        : primaryColor.withOpacity(0.3),
                                 width: 1,
                               ),
                             ),
@@ -762,16 +820,18 @@ class _CourseSchedulePageState extends State<CourseSchedulePage> {
                                 Container(
                                   padding: const EdgeInsets.all(4),
                                   decoration: BoxDecoration(
-                                    color: selectedTime != null 
-                                        ? primaryColor.withOpacity(0.2) 
-                                        : Colors.white.withOpacity(0.1),
+                                    color:
+                                        selectedTime != null
+                                            ? primaryColor.withOpacity(0.2)
+                                            : Colors.white.withOpacity(0.1),
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   child: Icon(
                                     Icons.access_time,
-                                    color: selectedTime != null 
-                                        ? primaryColor 
-                                        : Colors.grey,
+                                    color:
+                                        selectedTime != null
+                                            ? primaryColor
+                                            : Colors.grey,
                                     size: 16,
                                   ),
                                 ),
@@ -789,7 +849,11 @@ class _CourseSchedulePageState extends State<CourseSchedulePage> {
                                           fontFamily: 'Vazir',
                                         ),
                                       ),
-                                      icon: const Icon(Icons.arrow_drop_down, color: Colors.grey, size: 20),
+                                      icon: const Icon(
+                                        Icons.arrow_drop_down,
+                                        color: Colors.grey,
+                                        size: 20,
+                                      ),
                                       dropdownColor: Colors.grey[800],
                                       style: const TextStyle(
                                         color: Colors.white,
@@ -802,12 +866,17 @@ class _CourseSchedulePageState extends State<CourseSchedulePage> {
                                           applyFilters();
                                         });
                                       },
-                                      items: timeOptions.map<DropdownMenuItem<String>>((String value) {
-                                        return DropdownMenuItem<String>(
-                                          value: value,
-                                          child: Text(value),
-                                        );
-                                      }).toList(),
+                                      items:
+                                          timeOptions
+                                              .map<DropdownMenuItem<String>>((
+                                                String value,
+                                              ) {
+                                                return DropdownMenuItem<String>(
+                                                  value: value,
+                                                  child: Text(value),
+                                                );
+                                              })
+                                              .toList(),
                                     ),
                                   ),
                                 ),
@@ -817,9 +886,9 @@ class _CourseSchedulePageState extends State<CourseSchedulePage> {
                         ),
                       ],
                     ),
-                    
+
                     const SizedBox(height: 12),
-                    
+
                     // Show selected courses only toggle
                     InkWell(
                       onTap: () {
@@ -829,20 +898,32 @@ class _CourseSchedulePageState extends State<CourseSchedulePage> {
                         });
                       },
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
                         decoration: BoxDecoration(
-                          color: showSelectedOnly ? primaryColor.withOpacity(0.2) : Colors.white.withOpacity(0.1),
+                          color:
+                              showSelectedOnly
+                                  ? primaryColor.withOpacity(0.2)
+                                  : Colors.white.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(
-                            color: showSelectedOnly ? primaryColor : primaryColor.withOpacity(0.3),
+                            color:
+                                showSelectedOnly
+                                    ? primaryColor
+                                    : primaryColor.withOpacity(0.3),
                             width: 1,
                           ),
                         ),
                         child: Row(
                           children: [
                             Icon(
-                              showSelectedOnly ? Icons.check_box : Icons.check_box_outline_blank,
-                              color: showSelectedOnly ? primaryColor : Colors.grey,
+                              showSelectedOnly
+                                  ? Icons.check_box
+                                  : Icons.check_box_outline_blank,
+                              color:
+                                  showSelectedOnly ? primaryColor : Colors.grey,
                               size: 20,
                             ),
                             const SizedBox(width: 8),
@@ -895,9 +976,7 @@ class _CourseSchedulePageState extends State<CourseSchedulePage> {
                           children: [
                             // Header row
                             TableRow(
-                              decoration: BoxDecoration(
-                                color: primaryColor,
-                              ),
+                              decoration: BoxDecoration(color: primaryColor),
                               children: const [
                                 // Checkbox column header
                                 TableCell(
@@ -1046,7 +1125,9 @@ class _CourseSchedulePageState extends State<CourseSchedulePage> {
                               ],
                             ),
                             // Data rows
-                            ...filteredCourses.map((course) => _buildDataTableRow(course)),
+                            ...filteredCourses.map(
+                              (course) => _buildDataTableRow(course),
+                            ),
 
                             // Add empty rows if filtered courses are less than 7
                             if (filteredCourses.length < 7)
@@ -1061,23 +1142,50 @@ class _CourseSchedulePageState extends State<CourseSchedulePage> {
                   ),
                 ),
               ),
-              
+
               // Button to show selected courses
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(16),
                 child: ElevatedButton(
-                  onPressed: selectedCourses.isEmpty 
-                      ? null 
-                      : showSelectedCoursesAndConflicts,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: primaryColor,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    disabledBackgroundColor: Colors.grey,
-                  ),
+                  onPressed:
+                      selectedCourses.isEmpty
+                          ? null
+                          : () {
+                            List<thisCourse> convertedList =
+                                selectedCourses.map((entry) {
+                                  return thisCourse(
+                                    name: entry.courseName,
+                                    instructor: entry.instructor,
+                                    classroom: entry.classroom,
+                                    color:
+                                        Colors
+                                            .primaries[selectedCourses.indexOf(
+                                                  entry,
+                                                ) %
+                                                Colors.primaries.length]
+                                            .shade100,
+                                    date:
+                                        '1402/01/01', // مقدار ثابت یا از دیتا بیس بگیر
+                                    day: entry.day,
+                                    hour:
+                                        entry.time.split(
+                                          '-',
+                                        )[0], // فرض کردیم شروع زمان امتحانه
+                                  );
+                                }).toList();
+
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder:
+                                    (_) => SelectedSchedulePage(
+                                      selectedCourses: convertedList,
+                                    ),
+                              ),
+                            );
+                          },
+
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -1265,19 +1373,14 @@ class _CourseSchedulePageState extends State<CourseSchedulePage> {
    */
   TableRow _buildEmptyTableRow() {
     return TableRow(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-      ),
+      decoration: const BoxDecoration(color: Colors.white),
       children: List.generate(
         9, // Updated to include all columns including checkbox
         (index) => const TableCell(
           child: SizedBox(
             height: 40,
             child: Center(
-              child: Text(
-                '',
-                style: TextStyle(color: Colors.black),
-              ),
+              child: Text('', style: TextStyle(color: Colors.black)),
             ),
           ),
         ),

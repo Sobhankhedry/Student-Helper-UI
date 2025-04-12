@@ -168,11 +168,13 @@ class SimpleDashboard extends StatelessWidget {
         MaterialPageRoute(builder: (context) => SchedulePage(user: user1)),
       );
     } else if (pageName == 'برنامه رشته') {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const CourseSchedulePage()),
-    );
-  } else if (pageName == 'برنامه امتحانی') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => CourseSchedulePage(currentUser: user1),
+        ),
+      );
+    } else if (pageName == 'برنامه امتحانی') {
       Navigator.push(
         context,
         MaterialPageRoute(
