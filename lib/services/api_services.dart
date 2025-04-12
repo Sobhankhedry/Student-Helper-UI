@@ -132,6 +132,21 @@ class ApiService {
       throw Exception('خطا در ارتباط با سرور: $e');
     }
   }
+
+  Future<List<Course>> fetchScheduleByCourseIds(List<String> courseIds) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/TermCourse'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'ids': courseIds}),
+    );
+
+    if (response.statusCode == 200) {
+      final List data = jsonDecode(response.body);
+      return data.map((json) => Course.fromJson(json)).toList();
+    } else {
+      throw Exception('Failed to fetch selected schedule');
+    }
+  }
 }
 
 class HttpException implements Exception {

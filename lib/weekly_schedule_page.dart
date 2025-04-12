@@ -10,8 +10,8 @@ class thisCourse {
   final String instructor;
   final String classroom;
   final Color color;
-  final String date; // e.g. '1402/2/10'
-  final String day; // e.g. 'دوشنبه'
+  final String date;
+  final String day;
   final String hour;
 
   thisCourse({

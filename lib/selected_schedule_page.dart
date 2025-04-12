@@ -5,8 +5,8 @@ class thisCourse {
   final String instructor;
   final String classroom;
   final Color color;
-  final String date; // e.g. '1402/2/10'
-  final String day; // e.g. 'دوشنبه'
+  final String date;
+  final String day;
   final String hour;
 
   thisCourse({
@@ -176,11 +176,11 @@ class _SelectedSchedulePageState extends State<SelectedSchedulePage> {
   Widget _buildScheduleTable() {
     final List<String> weekDays = [
       'شنبه',
-      'یکشنبه',
-      'دوشنبه',
+      'یک شنبه',
+      'دو شنبه',
       'سه شنبه',
-      'چهارشنبه',
-      'پنجشنبه',
+      'چهار شنبه',
+      'پنج شنبه',
       'جمعه',
     ];
 

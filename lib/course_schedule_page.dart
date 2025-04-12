@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_2/models/User.dart';
 import 'package:flutter_application_2/selected_schedule_page.dart';
+import 'package:flutter_application_2/services/api_services.dart';
 
-// Define the primary theme color for the application
 const Color primaryColor = Color.fromARGB(255, 76, 175, 80); // Changed to green
 
 class JalaliDate {
@@ -17,12 +17,6 @@ class JalaliDate {
     return '$year/${month.toString().padLeft(2, '0')}/${day.toString().padLeft(2, '0')}';
   }
 
-  /**
-   * Gets the Persian name of a month
-   * 
-   * @param month The month number (1-12)
-   * @return The Persian name of the month
-   */
   static String getMonthName(int month) {
     final List<String> monthNames = [
       'فروردین',
@@ -64,6 +58,7 @@ class JalaliDate {
 class CourseEntry {
   final String id;
   final String day;
+  final String date;
   final String time;
   final String courseCode;
   final String courseGroup;
@@ -76,6 +71,7 @@ class CourseEntry {
   CourseEntry({
     required this.id,
     required this.day,
+    required this.date,
     required this.time,
     required this.courseCode,
     required this.courseGroup,
@@ -86,11 +82,11 @@ class CourseEntry {
     this.isSelected = false,
   });
 
-  // Create a copy of this course with the isSelected property changed
   CourseEntry copyWith({bool? isSelected}) {
     return CourseEntry(
       id: id,
       day: day,
+      date: date,
       time: time,
       courseCode: courseCode,
       courseGroup: courseGroup,
@@ -149,8 +145,8 @@ class _CourseSchedulePageState extends State<CourseSchedulePage> {
   final TextEditingController _searchController = TextEditingController();
 
   // Data collections
-  late List<CourseEntry> allCourses;
-  late List<CourseEntry> filteredCourses;
+  late List<CourseEntry> allCourses = [];
+  late List<CourseEntry> filteredCourses = [];
 
   // Selected courses
   List<CourseEntry> selectedCourses = [];
@@ -166,120 +162,7 @@ class _CourseSchedulePageState extends State<CourseSchedulePage> {
   @override
   void initState() {
     super.initState();
-
-    // Initialize sample data for the courses
-    allCourses = [
-      CourseEntry(
-        id: '1',
-        day: 'شنبه',
-        time: '08:00-10:00',
-        courseCode: '1234',
-        courseGroup: '01',
-        courseName: 'ریاضی 1',
-        classroom: '101',
-        instructor: 'دکتر محمدی',
-        credits: 3,
-      ),
-      CourseEntry(
-        id: '2',
-        day: 'یکشنبه',
-        time: '10:00-12:00',
-        courseCode: '2345',
-        courseGroup: '02',
-        courseName: 'فیزیک 1',
-        classroom: '102',
-        instructor: 'دکتر رضایی',
-        credits: 3,
-      ),
-      CourseEntry(
-        id: '3',
-        day: 'دوشنبه',
-        time: '13:00-15:00',
-        courseCode: '3456',
-        courseGroup: '01',
-        courseName: 'برنامه نویسی',
-        classroom: '103',
-        instructor: 'دکتر علوی',
-        credits: 3,
-      ),
-      CourseEntry(
-        id: '4',
-        day: 'سه شنبه',
-        time: '15:00-17:00',
-        courseCode: '4567',
-        courseGroup: '03',
-        courseName: 'مدار منطقی',
-        classroom: '104',
-        instructor: 'دکتر حسینی',
-        credits: 3,
-      ),
-      CourseEntry(
-        id: '5',
-        day: 'چهارشنبه',
-        time: '08:00-10:00',
-        courseCode: '5678',
-        courseGroup: '02',
-        courseName: 'ساختمان داده',
-        classroom: '105',
-        instructor: 'دکتر کریمی',
-        credits: 3,
-      ),
-      CourseEntry(
-        id: '6',
-        day: 'شنبه',
-        time: '10:00-12:00',
-        courseCode: '6789',
-        courseGroup: '01',
-        courseName: 'سیستم عامل',
-        classroom: '106',
-        instructor: 'دکتر جعفری',
-        credits: 3,
-      ),
-      CourseEntry(
-        id: '7',
-        day: 'یکشنبه',
-        time: '13:00-15:00',
-        courseCode: '7890',
-        courseGroup: '02',
-        courseName: 'پایگاه داده',
-        classroom: '107',
-        instructor: 'دکتر صادقی',
-        credits: 3,
-      ),
-      CourseEntry(
-        id: '8',
-        day: 'شنبه',
-        time: '08:00-10:00',
-        courseCode: '8901',
-        courseGroup: '03',
-        courseName: 'هوش مصنوعی',
-        classroom: '108',
-        instructor: 'دکتر نوری',
-        credits: 3,
-      ),
-      CourseEntry(
-        id: '9',
-        day: 'دوشنبه',
-        time: '10:00-12:00',
-        courseCode: '9012',
-        courseGroup: '01',
-        courseName: 'شبکه های کامپیوتری',
-        classroom: '109',
-        instructor: 'دکتر موسوی',
-        credits: 3,
-      ),
-      CourseEntry(
-        id: '10',
-        day: 'سه شنبه',
-        time: '13:00-15:00',
-        courseCode: '0123',
-        courseGroup: '02',
-        courseName: 'مهندسی نرم افزار',
-        classroom: '110',
-        instructor: 'دکتر احمدی',
-        credits: 3,
-      ),
-    ];
+    fetchScheduleFromApi();
 
     // Initialize filtered courses with all courses
     filteredCourses = List.from(allCourses);
@@ -287,8 +170,8 @@ class _CourseSchedulePageState extends State<CourseSchedulePage> {
     // Extract unique filter options from data
     dayOptions = [
       'شنبه',
-      'یکشنبه',
-      'دوشنبه',
+      'یک شنبه',
+      'دو شنبه',
       'سه شنبه',
       'چهارشنبه',
       'پنجشنبه',
@@ -297,18 +180,60 @@ class _CourseSchedulePageState extends State<CourseSchedulePage> {
     timeOptions = allCourses.map((e) => e.time).toSet().toList();
   }
 
+  Future<void> fetchScheduleFromApi() async {
+    try {
+      final courses = await ApiService().fetchSchedule(
+        widget.currentUser.university,
+        widget.currentUser.major,
+      );
+
+      // تبدیل لیست Course به CourseEntry
+      final List<CourseEntry> convertedCourses =
+          courses.map((course) {
+            return CourseEntry(
+              id: course.id,
+              day: course.day,
+              time: course.hour,
+              courseCode: course.courseCode,
+              courseGroup: course.group,
+              courseName: course.courseName,
+              classroom: course.classroom,
+              instructor: course.professorName,
+              credits:
+                  3, // اگر واحد درس داخل course نیست، مقدار پیش‌فرض بده یا دستی اضافه کن
+              isSelected: false,
+              date: course.date,
+            );
+          }).toList();
+      setState(() {
+        allCourses = convertedCourses;
+        filteredCourses = List.from(convertedCourses);
+        timeOptions =
+            convertedCourses.map((e) => e.time).toSet().toList()..sort(
+              (a, b) => _timeToMinutes(
+                a.split('-')[0],
+              ).compareTo(_timeToMinutes(b.split('-')[0])),
+            );
+      });
+    } catch (e) {
+      debugPrint('Error fetching schedule: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('خطا در دریافت برنامه درسی')),
+      );
+    }
+  }
+
+  int _timeToMinutes(String timeStr) {
+    final parts = timeStr.trim().split(':');
+    return int.parse(parts[0]) * 60 + int.parse(parts[1]);
+  }
+
   @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
   }
 
-  /**
-   * Applies all selected filters to the courses
-   * 
-   * This method filters the courses based on day, time, and search query.
-   * It updates the filteredCourses list with courses that match all selected filters.
-   */
   void applyFilters() {
     setState(() {
       if (showSelectedOnly) {
@@ -338,11 +263,6 @@ class _CourseSchedulePageState extends State<CourseSchedulePage> {
     });
   }
 
-  /**
-   * Resets all filters to their default state
-   * 
-   * This method clears all filter selections and restores the original list of courses.
-   */
   void resetFilters() {
     setState(() {
       selectedDay = null;
@@ -354,62 +274,39 @@ class _CourseSchedulePageState extends State<CourseSchedulePage> {
     });
   }
 
-  /**
-   * Toggles the selection state of a course
-   * 
-   * @param courseId The ID of the course to toggle
-   * @return True if the selection was successful, false if there was a conflict
-   */
   bool toggleCourseSelection(String courseId) {
-    // Find the course in allCourses
     int index = allCourses.indexWhere((course) => course.id == courseId);
     if (index == -1) return false;
 
-    // Get the course
-    CourseEntry course = allCourses[index];
-
-    // If we're trying to select (not deselect)
-    if (!course.isSelected) {
-      // Check for conflicts with already selected courses
-      String? conflictMessage = checkConflictWithCourse(course);
-
-      // If there's a conflict, show message and don't allow selection
-      if (conflictMessage != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              conflictMessage,
-              style: const TextStyle(fontFamily: 'Vazir'),
-              textAlign: TextAlign.right,
-            ),
-            backgroundColor: Colors.red,
-            duration: const Duration(seconds: 3),
-          ),
-        );
-        return false;
-      }
-    }
+    CourseEntry selectedCourse = allCourses[index];
+    bool newSelectionState = !selectedCourse.isSelected;
 
     setState(() {
-      // Toggle the selection
-      bool newSelectionState = !course.isSelected;
+      // همه جلسات این درس (بر اساس courseName)
+      for (int i = 0; i < allCourses.length; i++) {
+        if (allCourses[i].courseName == selectedCourse.courseName) {
+          allCourses[i] = allCourses[i].copyWith(isSelected: newSelectionState);
+        }
+      }
 
-      // Update the course in allCourses
-      allCourses[index] = course.copyWith(isSelected: newSelectionState);
-
-      // Update selectedCourses list
+      // به‌روز کردن selectedCourses
       if (newSelectionState) {
-        selectedCourses.add(allCourses[index]);
+        selectedCourses.addAll(
+          allCourses.where(
+            (c) =>
+                c.courseName == selectedCourse.courseName &&
+                !selectedCourses.contains(c),
+          ),
+        );
       } else {
-        selectedCourses.removeWhere((c) => c.id == courseId);
+        selectedCourses.removeWhere(
+          (c) => c.courseName == selectedCourse.courseName,
+        );
       }
 
-      // Update the filtered list as well
-      int filteredIndex = filteredCourses.indexWhere((c) => c.id == courseId);
-      if (filteredIndex != -1) {
-        filteredCourses[filteredIndex] = filteredCourses[filteredIndex]
-            .copyWith(isSelected: newSelectionState);
-      }
+      // به‌روزرسانی لیست فیلترشده
+      filteredCourses =
+          showSelectedOnly ? selectedCourses : List.from(allCourses);
     });
 
     return true;
@@ -965,13 +862,14 @@ class _CourseSchedulePageState extends State<CourseSchedulePage> {
                           columnWidths: const {
                             0: FixedColumnWidth(65), // Checkbox column
                             1: FixedColumnWidth(180), // Course Name
-                            2: FixedColumnWidth(100), // Day
-                            3: FixedColumnWidth(120), // Time
-                            4: FixedColumnWidth(100), // Instructor
-                            5: FixedColumnWidth(100), // Classroom
-                            6: FixedColumnWidth(100), // Course Group
-                            7: FixedColumnWidth(100), // Course Code
-                            8: FixedColumnWidth(80), // Credits
+                            2: FixedColumnWidth(100), // Date
+                            3: FixedColumnWidth(120), // day
+                            4: FixedColumnWidth(100), // time
+                            5: FixedColumnWidth(100), // instructor
+                            6: FixedColumnWidth(100), // classroom
+                            7: FixedColumnWidth(100), //Course Group
+                            8: FixedColumnWidth(100), // Course Code
+                            9: FixedColumnWidth(80), // Credits
                           },
                           children: [
                             // Header row
@@ -1001,6 +899,21 @@ class _CourseSchedulePageState extends State<CourseSchedulePage> {
                                     child: Center(
                                       child: Text(
                                         'نام درس',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                          fontFamily: 'Vazir',
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                TableCell(
+                                  child: Padding(
+                                    padding: EdgeInsets.all(8.0),
+                                    child: Center(
+                                      child: Text(
+                                        'تاریخ',
                                         style: TextStyle(
                                           color: Colors.white,
                                           fontWeight: FontWeight.bold,
@@ -1165,13 +1078,9 @@ class _CourseSchedulePageState extends State<CourseSchedulePage> {
                                                 ) %
                                                 Colors.primaries.length]
                                             .shade100,
-                                    date:
-                                        '1402/01/01', // مقدار ثابت یا از دیتا بیس بگیر
+                                    date: entry.date,
                                     day: entry.day,
-                                    hour:
-                                        entry.time.split(
-                                          '-',
-                                        )[0], // فرض کردیم شروع زمان امتحانه
+                                    hour: entry.time.split('-')[0],
                                   );
                                 }).toList();
 
@@ -1192,7 +1101,8 @@ class _CourseSchedulePageState extends State<CourseSchedulePage> {
                       const Icon(Icons.visibility, color: Colors.white),
                       const SizedBox(width: 8),
                       Text(
-                        'نمایش برنامه درسی (${selectedCourses.length} درس)',
+                        'نمایش برنامه درسی (${selectedCourses.map((e) => e.courseName).toSet().length} درس)',
+
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 16,
@@ -1251,6 +1161,21 @@ class _CourseSchedulePageState extends State<CourseSchedulePage> {
                   color: Colors.black,
                   fontFamily: 'Vazir',
                   fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+        ),
+        TableCell(
+          child: Padding(
+            padding: EdgeInsets.all(8.0),
+            child: Center(
+              child: Text(
+                course.date,
+                style: TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'Vazir',
                 ),
               ),
             ),
@@ -1366,16 +1291,11 @@ class _CourseSchedulePageState extends State<CourseSchedulePage> {
     );
   }
 
-  /**
-   * Builds an empty table row for padding the table
-   * 
-   * @return A TableRow widget with empty cells
-   */
   TableRow _buildEmptyTableRow() {
     return TableRow(
       decoration: const BoxDecoration(color: Colors.white),
       children: List.generate(
-        9, // Updated to include all columns including checkbox
+        10, // Updated to include all columns including checkbox
         (index) => const TableCell(
           child: SizedBox(
             height: 40,
