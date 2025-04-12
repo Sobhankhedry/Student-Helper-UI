@@ -33,6 +33,7 @@ class SelectedSchedulePage extends StatefulWidget {
 class _SelectedSchedulePageState extends State<SelectedSchedulePage> {
   int _selectedWeek = 1;
   final int _totalWeeks = 8;
+  Color primaryColor = Color.fromARGB(255, 20, 165, 255);
 
   final List<Map<String, String>> timeSlots = [
     {'start': '8:00', 'end': '10:00'},
@@ -140,7 +141,7 @@ class _SelectedSchedulePageState extends State<SelectedSchedulePage> {
       decoration: BoxDecoration(
         color: Colors.grey[900],
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.blueAccent, width: 1),
+        border: Border.all(color: const Color(0xFF14A5FF), width: 1),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -186,58 +187,107 @@ class _SelectedSchedulePageState extends State<SelectedSchedulePage> {
     return Table(
       border: TableBorder.all(color: Colors.black, width: 1.5),
       defaultColumnWidth: const FixedColumnWidth(150),
-      columnWidths: const {0: FixedColumnWidth(80)},
+      columnWidths: const {
+        0: FixedColumnWidth(80), // ستون روزها
+      },
       children: [
+        // 🟦 هدر جدول (ساعات کلاس)
         TableRow(
-          decoration: const BoxDecoration(color: Colors.blueAccent),
+          decoration: BoxDecoration(color: primaryColor),
           children: [
             const TableCell(
-              child: Center(
-                child: Text(
-                  'ساعت',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 8.0),
+                child: Center(
+                  child: Text(
+                    'ساعت',
+                    style: TextStyle(
+                      fontFamily: 'Vazir',
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                    textAlign: TextAlign.center,
                   ),
                 ),
               ),
             ),
             ...timeSlots.map(
               (slot) => TableCell(
-                child: Center(
-                  child: Text(
-                    '${slot['start']} تا ${slot['end']}',
-                    style: const TextStyle(color: Colors.white),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        slot['start']!,
+                        style: const TextStyle(
+                          fontFamily: 'Vazir',
+                          color: Colors.black,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const Text(
+                        'تا',
+                        style: TextStyle(
+                          fontFamily: 'Vazir',
+                          color: Colors.black,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      Text(
+                        slot['end']!,
+                        style: const TextStyle(
+                          fontFamily: 'Vazir',
+                          color: Colors.black,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
                   ),
                 ),
               ),
             ),
           ],
         ),
+
+        // 📅 ردیف‌های مربوط به روزهای هفته
         ...weekDays.map((day) {
           return TableRow(
             children: [
+              // 🔹 نام روز
               TableCell(
                 child: Container(
-                  height: 80,
+                  height: 100,
                   color: Colors.white,
                   child: Center(
                     child: Text(
                       day,
                       style: const TextStyle(
                         fontFamily: 'Vazir',
+                        color: Colors.black,
                         fontWeight: FontWeight.bold,
+                        fontSize: 14,
                       ),
+                      textAlign: TextAlign.center,
                     ),
                   ),
                 ),
               ),
+              // 🔹 سلول‌های مربوط به کلاس‌ها در هر اسلات زمانی
               ...List.generate(timeSlots.length, (index) {
                 final course = weeklySchedules[_selectedWeek]?[day]?[index];
                 return TableCell(
                   child: Container(
-                    height: 80,
+                    height: 100,
                     color: course?.color ?? Colors.white,
+                    padding: const EdgeInsets.all(4),
                     child:
                         course != null
                             ? Column(
@@ -246,17 +296,39 @@ class _SelectedSchedulePageState extends State<SelectedSchedulePage> {
                                 Text(
                                   course.name,
                                   style: const TextStyle(
+                                    fontFamily: 'Vazir',
                                     fontWeight: FontWeight.bold,
                                     fontSize: 12,
                                   ),
+                                  textAlign: TextAlign.center,
                                 ),
+                                const SizedBox(height: 4),
                                 Text(
                                   course.instructor,
-                                  style: const TextStyle(fontSize: 10),
+                                  style: const TextStyle(
+                                    fontFamily: 'Vazir',
+                                    fontSize: 10,
+                                  ),
+                                  textAlign: TextAlign.center,
                                 ),
-                                Text(
-                                  'کلاس ${course.classroom}',
-                                  style: const TextStyle(fontSize: 10),
+                                const SizedBox(height: 2),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 2,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.7),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Text(
+                                    'کلاس ${course.classroom}',
+                                    style: const TextStyle(
+                                      fontFamily: 'Vazir',
+                                      fontSize: 10,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
                                 ),
                               ],
                             )

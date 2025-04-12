@@ -160,14 +160,6 @@ class _WeeklySchedulePageState extends State<WeeklySchedulePage> {
     {'start': '16:00', 'end': '18:00'},
     {'start': '18:00', 'end': '20:00'},
   ];
-  // int getSlotIndex(String hour) {
-  //   for (int i = 0; i < timeSlots.length; i++) {
-  //     if (hour.trim() == timeSlots[i]['start']) {
-  //       return i;
-  //     }
-  //   }
-  //   return -1; // اگر هیچ اسلاتی پیدا نشد
-  // }
 
   int getSlotIndex(String hour) {
     TimeOfDay courseTime = _parseTime(hour);
@@ -256,7 +248,7 @@ class _WeeklySchedulePageState extends State<WeeklySchedulePage> {
       decoration: BoxDecoration(
         color: Colors.grey[900],
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: primaryColor, width: 1),
+        border: Border.all(color: const Color(0xFF14A5FF), width: 1),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
