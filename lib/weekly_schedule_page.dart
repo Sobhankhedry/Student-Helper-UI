@@ -77,7 +77,7 @@ class _WeeklySchedulePageState extends State<WeeklySchedulePage> {
         '1402/01/20': 3,
         '1402/01/21': 3,
 
-        // // هفته چهارم
+        // هفته چهارم
         '1402/01/22': 4,
         '1402/01/23': 4,
         '1402/01/24': 4,

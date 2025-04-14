@@ -100,23 +100,27 @@ class CourseEntry {
 
   // Check if this course conflicts with another course
   bool conflictsWith(CourseEntry other) {
-    // If they're on different days, no conflict
-    if (day != other.day) {
+    if (day != other.day) return false;
+
+    try {
+      List<String> thisTimeRange = time.split('-');
+      List<String> otherTimeRange = other.time.split('-');
+
+      if (thisTimeRange.length < 2 || otherTimeRange.length < 2) {
+        debugPrint('Invalid time format: $time or ${other.time}');
+        return false;
+      }
+
+      int thisStart = _timeToMinutes(thisTimeRange[0]);
+      int thisEnd = _timeToMinutes(thisTimeRange[1]);
+      int otherStart = _timeToMinutes(otherTimeRange[0]);
+      int otherEnd = _timeToMinutes(otherTimeRange[1]);
+
+      return (thisStart < otherEnd && thisEnd > otherStart);
+    } catch (e) {
+      debugPrint('Error in time conflict check: $e');
       return false;
     }
-
-    // Parse time ranges
-    List<String> thisTimeRange = time.split('-');
-    List<String> otherTimeRange = other.time.split('-');
-
-    // Convert to minutes for easier comparison
-    int thisStart = _timeToMinutes(thisTimeRange[0]);
-    int thisEnd = _timeToMinutes(thisTimeRange[1]);
-    int otherStart = _timeToMinutes(otherTimeRange[0]);
-    int otherEnd = _timeToMinutes(otherTimeRange[1]);
-
-    // Check for overlap
-    return (thisStart < otherEnd && thisEnd > otherStart);
   }
 
   // Helper method to convert time string (HH:MM) to minutes
@@ -136,6 +140,26 @@ class CourseSchedulePage extends StatefulWidget {
 }
 
 class _CourseSchedulePageState extends State<CourseSchedulePage> {
+  String _autoExpandTime(String startTime) {
+    try {
+      TimeOfDay start = _parseTime(startTime);
+      TimeOfDay end = TimeOfDay(hour: start.hour + 2, minute: start.minute);
+
+      String format(TimeOfDay t) =>
+          '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
+
+      return '${format(start)}-${format(end)}';
+    } catch (e) {
+      debugPrint('Invalid startTime: $startTime');
+      return '$startTime-00:00';
+    }
+  }
+
+  TimeOfDay _parseTime(String time) {
+    final parts = time.split(':');
+    return TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1]));
+  }
+
   // Filter state variables
   String? selectedDay;
   String? selectedTime;
@@ -190,21 +214,27 @@ class _CourseSchedulePageState extends State<CourseSchedulePage> {
       // تبدیل لیست Course به CourseEntry
       final List<CourseEntry> convertedCourses =
           courses.map((course) {
+            // 👇 Auto-expand single time to range
+            String courseTime =
+                course.hour.contains('-')
+                    ? course.hour
+                    : _autoExpandTime(course.hour); // You’ll define this below
+
             return CourseEntry(
               id: course.id,
               day: course.day,
-              time: course.hour,
+              date: course.date,
+              time: courseTime,
               courseCode: course.courseCode,
               courseGroup: course.group,
               courseName: course.courseName,
               classroom: course.classroom,
               instructor: course.professorName,
-              credits:
-                  3, // اگر واحد درس داخل course نیست، مقدار پیش‌فرض بده یا دستی اضافه کن
+              credits: 3,
               isSelected: false,
-              date: course.date,
             );
           }).toList();
+
       setState(() {
         allCourses = convertedCourses;
         filteredCourses = List.from(convertedCourses);
@@ -281,15 +311,35 @@ class _CourseSchedulePageState extends State<CourseSchedulePage> {
     CourseEntry selectedCourse = allCourses[index];
     bool newSelectionState = !selectedCourse.isSelected;
 
+    // Conflict check: only check if we’re turning this course ON
+    if (newSelectionState) {
+      for (var existing in selectedCourses) {
+        if (selectedCourse.conflictsWith(existing)) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'تداخل زمانی: درس ${selectedCourse.courseName} با ${existing.courseName} در ${selectedCourse.day} تداخل دارد.',
+                style: const TextStyle(fontFamily: 'Vazir'),
+                textAlign: TextAlign.center,
+              ),
+              backgroundColor: Colors.red,
+              behavior: SnackBarBehavior.floating,
+              duration: const Duration(seconds: 3),
+            ),
+          );
+          return false;
+        }
+      }
+    }
+
     setState(() {
-      // همه جلسات این درس (بر اساس courseName)
+      // Select or deselect all sessions with the same course name
       for (int i = 0; i < allCourses.length; i++) {
         if (allCourses[i].courseName == selectedCourse.courseName) {
           allCourses[i] = allCourses[i].copyWith(isSelected: newSelectionState);
         }
       }
 
-      // به‌روز کردن selectedCourses
       if (newSelectionState) {
         selectedCourses.addAll(
           allCourses.where(
@@ -304,7 +354,6 @@ class _CourseSchedulePageState extends State<CourseSchedulePage> {
         );
       }
 
-      // به‌روزرسانی لیست فیلترشده
       filteredCourses =
           showSelectedOnly ? selectedCourses : List.from(allCourses);
     });
@@ -1065,6 +1114,51 @@ class _CourseSchedulePageState extends State<CourseSchedulePage> {
                       selectedCourses.isEmpty
                           ? null
                           : () {
+                            // Conflict check
+                            bool hasConflict = false;
+                            String? conflictMessage;
+
+                            for (int i = 0; i < selectedCourses.length; i++) {
+                              for (
+                                int j = i + 1;
+                                j < selectedCourses.length;
+                                j++
+                              ) {
+                                if (selectedCourses[i].conflictsWith(
+                                  selectedCourses[j],
+                                )) {
+                                  hasConflict = true;
+
+                                  final c1 = selectedCourses[i];
+                                  final c2 = selectedCourses[j];
+
+                                  conflictMessage =
+                                      'تداخل زمانی بین "${c1.courseName}" (${c1.day} ${c1.time}) '
+                                      'و "${c2.courseName}" (${c2.day} ${c2.time})';
+
+                                  break;
+                                }
+                              }
+                              if (hasConflict) break;
+                            }
+
+                            if (hasConflict && conflictMessage != null) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    conflictMessage!,
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(fontFamily: 'Vazir'),
+                                  ),
+                                  backgroundColor: Colors.red,
+                                  behavior: SnackBarBehavior.floating,
+                                  duration: const Duration(seconds: 4),
+                                ),
+                              );
+                              return; // ❗ Prevent navigation
+                            }
+
+                            // ✅ No conflict → Convert and navigate
                             List<thisCourse> convertedList =
                                 selectedCourses.map((entry) {
                                   return thisCourse(
@@ -1102,7 +1196,6 @@ class _CourseSchedulePageState extends State<CourseSchedulePage> {
                       const SizedBox(width: 8),
                       Text(
                         'نمایش برنامه درسی (${selectedCourses.map((e) => e.courseName).toSet().length} درس)',
-
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 16,
