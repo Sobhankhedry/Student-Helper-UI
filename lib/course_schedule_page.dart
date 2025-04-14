@@ -100,6 +100,10 @@ class CourseEntry {
 
   // Check if this course conflicts with another course
   bool conflictsWith(CourseEntry other) {
+    // Check same date first
+    if (date != other.date) return false;
+
+    // Then check same day (just in case, since they may both matter)
     if (day != other.day) return false;
 
     try {
@@ -1114,7 +1118,7 @@ class _CourseSchedulePageState extends State<CourseSchedulePage> {
                       selectedCourses.isEmpty
                           ? null
                           : () {
-                            // Conflict check
+                            // ✅ Only check selectedCourses — not allCourses!
                             bool hasConflict = false;
                             String? conflictMessage;
 
@@ -1133,8 +1137,8 @@ class _CourseSchedulePageState extends State<CourseSchedulePage> {
                                   final c2 = selectedCourses[j];
 
                                   conflictMessage =
-                                      'تداخل زمانی بین "${c1.courseName}" (${c1.day} ${c1.time}) '
-                                      'و "${c2.courseName}" (${c2.day} ${c2.time})';
+                                      'تداخل بین "${c1.courseName}" (${c1.day} ${c1.time}) و '
+                                      '"${c2.courseName}" (${c2.day} ${c2.time})';
 
                                   break;
                                 }
@@ -1142,7 +1146,7 @@ class _CourseSchedulePageState extends State<CourseSchedulePage> {
                               if (hasConflict) break;
                             }
 
-                            if (hasConflict && conflictMessage != null) {
+                            if (hasConflict) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text(
@@ -1155,10 +1159,10 @@ class _CourseSchedulePageState extends State<CourseSchedulePage> {
                                   duration: const Duration(seconds: 4),
                                 ),
                               );
-                              return; // ❗ Prevent navigation
+                              return;
                             }
 
-                            // ✅ No conflict → Convert and navigate
+                            // ✅ If no conflict → convert and navigate
                             List<thisCourse> convertedList =
                                 selectedCourses.map((entry) {
                                   return thisCourse(
