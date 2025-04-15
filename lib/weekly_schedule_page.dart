@@ -411,15 +411,30 @@ class _WeeklySchedulePageState extends State<WeeklySchedulePage> {
                       height: 100,
                       color: Colors.white,
                       child: Center(
-                        child: Text(
-                          day,
-                          style: const TextStyle(
-                            fontFamily: 'Vazir',
-                            color: Colors.black,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                          ),
-                          textAlign: TextAlign.center,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              day,
+                              style: const TextStyle(
+                                fontFamily: 'Vazir',
+                                color: Colors.black,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              _getDateForDay(day) ?? '',
+                              style: const TextStyle(
+                                fontFamily: 'Vazir',
+                                color: Colors.grey,
+                                fontSize: 12,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
                         ),
                       ),
                     ),
@@ -491,5 +506,13 @@ class _WeeklySchedulePageState extends State<WeeklySchedulePage> {
             .toList(),
       ],
     );
+  }
+
+  String? _getDateForDay(String day) {
+    final dayEntries = weeklySchedules[_selectedWeek]?[day];
+    if (dayEntries == null || dayEntries.isEmpty) return null;
+
+    // Get the first course and use its date
+    return dayEntries.values.first.date;
   }
 }
