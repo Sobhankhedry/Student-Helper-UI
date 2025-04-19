@@ -126,6 +126,7 @@ class _WeeklySchedulePageState extends State<WeeklySchedulePage> {
         widget.currentUser.university,
         widget.currentUser.major,
         widget.currentUser.userName,
+        widget.currentUser.role,
       );
 
       for (var c in course) {
@@ -400,7 +401,6 @@ class _WeeklySchedulePageState extends State<WeeklySchedulePage> {
           ],
         ),
 
-        // Day rows with course data
         ...weekDays
             .map(
               (day) => TableRow(

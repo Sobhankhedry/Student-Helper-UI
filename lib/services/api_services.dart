@@ -104,6 +104,7 @@ class ApiService {
     String university,
     String major,
     String username,
+    String role,
   ) async {
     try {
       final response = await http.post(
@@ -113,6 +114,7 @@ class ApiService {
           'university': university,
           'major': major,
           'userName': username,
+          'role': role,
         }),
       );
 
